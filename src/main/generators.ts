@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { buildKleinPrompt } from './fluxPrompt'
 import { removeBackground } from './imagePipeline'
-import { KLEIN_MODEL, KLEIN_SIZE, KLEIN_STEPS, runMflux } from './mfluxRunner'
+import { runSd } from './sdRunner'
 
 const SEED_RANGE = 1_000_000
 
@@ -35,11 +35,11 @@ const passthrough: ImageGenerator = {
   }
 }
 
-// mflux(MLX)で FLUX.2 klein 4B をローカル実行する。素材は外部送信しない。
-// 検証: M4相当で約10秒/枚、ピークメモリ約13GB。
+// stable-diffusion.cpp(Metal)で FLUX.2 klein 4B をローカル実行する。素材は外部送信しない。
+// 検証: M4相当で約27秒/枚、ピークメモリ約10GB。
 const kleinLocal: ImageGenerator = {
   id: 'flux2-klein-4b-local',
-  label: 'FLUX.2 klein 4B(ローカル・mflux)',
+  label: 'FLUX.2 klein 4B(ローカル・stable-diffusion.cpp)',
   async generate(req) {
     if (req.referenceImages.length === 0) throw new Error('参考画像が取り込まれていません')
 
@@ -53,17 +53,14 @@ const kleinLocal: ImageGenerator = {
         })
       )
       const out = join(dir, 'out.png')
-      await runMflux('mflux-generate-flux2-edit', [
-        '--model', KLEIN_MODEL,
-        '--image-paths', ...refPaths,
-        '--prompt', buildKleinPrompt({
+      await runSd({
+        prompt: buildKleinPrompt({
           keepTraits: req.characterTraits, expression: req.expression, pose: req.pose
         }),
-        '--steps', String(KLEIN_STEPS),
-        '--seed', String(randomInt(SEED_RANGE)),
-        '--width', String(KLEIN_SIZE), '--height', String(KLEIN_SIZE),
-        '--output', out
-      ])
+        seed: randomInt(SEED_RANGE),
+        output: out,
+        referenceImages: refPaths
+      })
       // 白一色の背景を透過にして返す
       return await removeBackground(await readFile(out))
     } finally {

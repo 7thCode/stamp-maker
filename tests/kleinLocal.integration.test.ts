@@ -2,14 +2,13 @@ import { existsSync, readFileSync } from 'node:fs'
 import sharp from 'sharp'
 import { describe, expect, it } from 'vitest'
 import { getGenerator } from '../src/main/generators'
-import { MFLUX_ROOT } from '../src/main/mfluxRunner'
+import { missingSdFiles } from '../src/main/sdRunner'
 
-const MFLUX_BIN = `${MFLUX_ROOT}/venv/bin/mflux-generate-flux2-edit`
 const REFERENCE = '/Users/oda/Desktop/IMG_4815.PNG'
-const ready = existsSync(MFLUX_BIN) && existsSync(REFERENCE)
+const ready = missingSdFiles().length === 0 && existsSync(REFERENCE)
 const GENERATE_TIMEOUT_MS = 180_000
 
-// 実機のmflux環境と参考画像がある場合のみ実行する統合テスト
+// 実機のsd-cli環境と参考画像がある場合のみ実行する統合テスト
 describe.skipIf(!ready)('flux2-klein-4b-local(統合)', () => {
   it('参考画像から文字なし・背景透過のPNGを生成する', async () => {
     const out = await getGenerator('flux2-klein-4b-local').generate({
