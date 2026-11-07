@@ -2,8 +2,9 @@ import { existsSync, readFileSync } from 'node:fs'
 import sharp from 'sharp'
 import { describe, expect, it } from 'vitest'
 import { getGenerator } from '../src/main/generators'
+import { MFLUX_ROOT } from '../src/main/mfluxRunner'
 
-const MFLUX_BIN = '/Volumes/stampmaker/venv/bin/mflux-generate-flux2-edit'
+const MFLUX_BIN = `${MFLUX_ROOT}/venv/bin/mflux-generate-flux2-edit`
 const REFERENCE = '/Users/oda/Desktop/IMG_4815.PNG'
 const ready = existsSync(MFLUX_BIN) && existsSync(REFERENCE)
 const GENERATE_TIMEOUT_MS = 180_000
