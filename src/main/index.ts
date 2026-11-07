@@ -9,6 +9,7 @@ import { buildExport } from './exporter'
 import { getGenerator, listGenerators } from './generators'
 import { finalizeImage, removeBackground } from './imagePipeline'
 import { ProjectStore } from './projectStore'
+import { translateAll } from './translator'
 
 let store: ProjectStore
 
@@ -65,8 +66,9 @@ function registerIpc(): void {
       const raw = await getGenerator(project.generator).generate({
         referenceImages: refs,
         characterTraits: project.character.keepTraits,
-        expression: sticker.expression,
-        pose: sticker.pose
+        // 英語欄が空なら入力そのまま(旧データや英語入力)
+        expression: sticker.expressionEn || sticker.expression,
+        pose: sticker.poseEn || sticker.pose
       })
       const rel = join('images', `${stickerId}-${randomUUID()}.png`)
       await store.writeImage(id, rel, await finalizeImage(raw, 'sticker'))
@@ -100,6 +102,19 @@ function registerIpc(): void {
     const rel = join('images', `${stickerId}-${randomUUID()}.png`)
     await store.writeImage(id, rel, out)
     return store.save(updateSticker(project, stickerId, { imagePath: rel }))
+  })
+
+  // 日本語の表情・ポーズを英訳して英語欄へ入れる(英語欄は後から手で直せる)
+  ipcMain.handle('prompts:translate', async (_e, id: string) => {
+    const project = await store.load(id)
+    const sources = project.stickers.flatMap((s) => [s.expression, s.pose])
+    const translated = await translateAll(sources, (url, init) => fetch(url, init))
+    const stickers = project.stickers.map((s, i) => ({
+      ...s,
+      expressionEn: translated[i * 2],
+      poseEn: translated[i * 2 + 1]
+    }))
+    return store.save({ ...project, stickers })
   })
 
   ipcMain.handle('export:run', async (_e, req: ExportRequest): Promise<ExportResponse> => {

@@ -23,5 +23,6 @@ export interface StampApi {
   generateSticker(id: string, stickerId: string): Promise<Project>
   importStickerImage(id: string, stickerId: string): Promise<Project | null>
   removeBackground(id: string, stickerId: string): Promise<Project>
+  translatePrompts(id: string): Promise<Project>
   exportSet(req: ExportRequest): Promise<ExportResponse>
 }

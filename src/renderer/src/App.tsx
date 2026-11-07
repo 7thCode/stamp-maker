@@ -71,7 +71,7 @@ export function App() {
       </header>
       <main>
         {tab === 'setup' && <SetupTab project={project} onChange={onChange} onReplace={onReplace} />}
-        {tab === 'plan' && <PlanTab project={project} onChange={onChange} />}
+        {tab === 'plan' && <PlanTab project={project} onChange={onChange} onReplace={onReplace} />}
         {tab === 'gallery' && <GalleryTab project={project} onChange={onChange} onReplace={onReplace} />}
         {tab === 'sales' && <SalesTab project={project} onChange={onChange} />}
         {tab === 'export' && <ExportTab project={project} onChange={onChange} />}

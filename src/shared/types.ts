@@ -19,6 +19,9 @@ export interface Sticker {
   text: string
   expression: string
   pose: string
+  // 画像生成に使う英語版(空なら expression / pose をそのまま使う)
+  expressionEn: string
+  poseEn: string
   // プロジェクトフォルダからの相対パス。未生成なら null
   imagePath: string | null
   status: StickerStatus

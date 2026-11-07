@@ -12,6 +12,7 @@ const api: StampApi = {
   generateSticker: (id, sid) => ipcRenderer.invoke('sticker:generate', id, sid),
   importStickerImage: (id, sid) => ipcRenderer.invoke('sticker:importImage', id, sid),
   removeBackground: (id, sid) => ipcRenderer.invoke('sticker:removeBackground', id, sid),
+  translatePrompts: (id) => ipcRenderer.invoke('prompts:translate', id),
   exportSet: (req) => ipcRenderer.invoke('export:run', req)
 }
 

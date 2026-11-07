@@ -16,6 +16,8 @@ export function newSticker(id: string, overrides: Partial<Sticker> = {}): Sticke
     text: '',
     expression: '',
     pose: '',
+    expressionEn: '',
+    poseEn: '',
     imagePath: null,
     status: 'unchecked',
     job: 'idle',
