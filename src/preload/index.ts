@@ -13,6 +13,9 @@ const api: StampApi = {
   importStickerImage: (id, sid) => ipcRenderer.invoke('sticker:importImage', id, sid),
   removeBackground: (id, sid) => ipcRenderer.invoke('sticker:removeBackground', id, sid),
   translatePrompts: (id) => ipcRenderer.invoke('prompts:translate', id),
+  translateText: (text) => ipcRenderer.invoke('text:translate', text),
+  generateReferenceCandidate: (id, d) => ipcRenderer.invoke('reference:generate', id, d),
+  adoptReferenceCandidate: (id, rel) => ipcRenderer.invoke('reference:adopt', id, rel),
   exportSet: (req) => ipcRenderer.invoke('export:run', req)
 }
 

@@ -59,6 +59,22 @@ export class ProjectStore {
     return rel
   }
 
+  // 参考画像の候補を保存する(採用されるまで referenceImages には入らない)
+  async saveCandidate(id: string, data: Buffer): Promise<string> {
+    const rel = join('candidates', `${randomUUID()}.png`)
+    await mkdir(join(this.dir(id), 'candidates'), { recursive: true })
+    await this.writeImage(id, rel, data)
+    return rel
+  }
+
+  // 候補を参考画像として取り込む。戻り値は refs 配下の相対パス
+  async adoptCandidate(id: string, candidateRel: string): Promise<string> {
+    const data = await this.readImage(id, candidateRel)
+    const rel = join('refs', `${randomUUID()}-generated.png`)
+    await this.writeImage(id, rel, data)
+    return rel
+  }
+
   async writeImage(id: string, rel: string, data: Buffer): Promise<void> {
     await writeFile(join(this.resolveInside(id, rel)), data)
   }

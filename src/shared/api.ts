@@ -24,5 +24,8 @@ export interface StampApi {
   importStickerImage(id: string, stickerId: string): Promise<Project | null>
   removeBackground(id: string, stickerId: string): Promise<Project>
   translatePrompts(id: string): Promise<Project>
+  translateText(text: string): Promise<string>
+  generateReferenceCandidate(id: string, description: string): Promise<string>
+  adoptReferenceCandidate(id: string, candidateRel: string): Promise<Project>
   exportSet(req: ExportRequest): Promise<ExportResponse>
 }

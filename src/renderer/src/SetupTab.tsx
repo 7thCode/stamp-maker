@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { Project } from '../../shared/types'
+import { ReferenceGenerator } from './ReferenceGenerator'
 
 interface Props {
   project: Project
@@ -30,6 +31,7 @@ export function SetupTab({ project, onChange, onReplace }: Props) {
         {thumbs.map((t, i) => <img key={project.referenceImages[i]} src={t} alt={`参考画像${i + 1}`} />)}
         <button onClick={importRefs}>画像を追加…</button>
       </div>
+      <ReferenceGenerator project={project} onReplace={onReplace} />
       <h3>キャラクター設定</h3>
       <label className="field">名前<input type="text" value={project.character.name} onChange={(e) => setChar('name', e.target.value)} /></label>
       <label className="field">維持したい特徴(顔・配色・服装・画風)<textarea rows={3} value={project.character.keepTraits} onChange={(e) => setChar('keepTraits', e.target.value)} /></label>

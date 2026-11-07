@@ -24,3 +24,12 @@ describe.skipIf(!ready)('flux2-klein-4b-local(統合)', () => {
     expect(opaque).toBeGreaterThan(1000) // キャラクターが残っている
   }, GENERATE_TIMEOUT_MS)
 })
+
+describe.skipIf(!ready)('参考画像の候補生成(統合)', () => {
+  it('説明文から512pxのPNGを生成する', async () => {
+    const { generateReferenceCandidate } = await import('../src/main/referenceGen')
+    const out = await generateReferenceCandidate('a cute round fluffy white cat with big eyes')
+    const meta = await sharp(out).metadata()
+    expect([meta.format, meta.width, meta.height]).toEqual(['png', 512, 512])
+  }, GENERATE_TIMEOUT_MS)
+})

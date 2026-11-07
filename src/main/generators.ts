@@ -1,14 +1,12 @@
-import { execFile } from 'node:child_process'
 import { randomInt, randomUUID } from 'node:crypto'
-import { existsSync } from 'node:fs'
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { promisify } from 'node:util'
 import { buildKleinPrompt } from './fluxPrompt'
 import { removeBackground } from './imagePipeline'
+import { KLEIN_MODEL, KLEIN_SIZE, KLEIN_STEPS, runMflux } from './mfluxRunner'
 
-const run = promisify(execFile)
+const SEED_RANGE = 1_000_000
 
 // 画像生成バックエンドの差し替え口。
 // ローカル(M4)/クラウドの方式は先行検証後に確定するため、ここにプロバイダを追加する。
@@ -38,21 +36,11 @@ const passthrough: ImageGenerator = {
 }
 
 // mflux(MLX)で FLUX.2 klein 4B をローカル実行する。素材は外部送信しない。
-// 検証: M4相当で約10秒/枚、ピークメモリ約13GB。モデルは mflux の環境と同じ場所(HF_HOME)に置く。
-const MFLUX_ROOT = process.env['STAMP_MFLUX_ROOT'] ?? '/Volumes/stampmaker'
-const KLEIN_TIMEOUT_MS = 10 * 60 * 1000
-const KLEIN_SIZE = 512
-const KLEIN_STEPS = 4
-const SEED_RANGE = 1_000_000
-
+// 検証: M4相当で約10秒/枚、ピークメモリ約13GB。
 const kleinLocal: ImageGenerator = {
   id: 'flux2-klein-4b-local',
   label: 'FLUX.2 klein 4B(ローカル・mflux)',
   async generate(req) {
-    const bin = join(MFLUX_ROOT, 'venv/bin/mflux-generate-flux2-edit')
-    if (!existsSync(bin)) {
-      throw new Error(`mfluxが見つかりません(${MFLUX_ROOT})。外付けボリュームの接続を確認してください`)
-    }
     if (req.referenceImages.length === 0) throw new Error('参考画像が取り込まれていません')
 
     const dir = await mkdtemp(join(tmpdir(), 'stamp-gen-'))
@@ -65,21 +53,17 @@ const kleinLocal: ImageGenerator = {
         })
       )
       const out = join(dir, 'out.png')
-      await run(
-        bin,
-        [
-          '--model', 'flux2-klein-4b',
-          '--image-paths', ...refPaths,
-          '--prompt', buildKleinPrompt({
-            keepTraits: req.characterTraits, expression: req.expression, pose: req.pose
-          }),
-          '--steps', String(KLEIN_STEPS),
-          '--seed', String(randomInt(SEED_RANGE)),
-          '--width', String(KLEIN_SIZE), '--height', String(KLEIN_SIZE),
-          '--output', out
-        ],
-        { env: { ...process.env, HF_HOME: join(MFLUX_ROOT, 'hf') }, timeout: KLEIN_TIMEOUT_MS, maxBuffer: 64 * 1024 * 1024 }
-      )
+      await runMflux('mflux-generate-flux2-edit', [
+        '--model', KLEIN_MODEL,
+        '--image-paths', ...refPaths,
+        '--prompt', buildKleinPrompt({
+          keepTraits: req.characterTraits, expression: req.expression, pose: req.pose
+        }),
+        '--steps', String(KLEIN_STEPS),
+        '--seed', String(randomInt(SEED_RANGE)),
+        '--width', String(KLEIN_SIZE), '--height', String(KLEIN_SIZE),
+        '--output', out
+      ])
       // 白一色の背景を透過にして返す
       return await removeBackground(await readFile(out))
     } finally {

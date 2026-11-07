@@ -9,6 +9,7 @@ import { buildExport } from './exporter'
 import { getGenerator, listGenerators } from './generators'
 import { finalizeImage, removeBackground } from './imagePipeline'
 import { ProjectStore } from './projectStore'
+import { generateReferenceCandidate } from './referenceGen'
 import { translateAll } from './translator'
 
 let store: ProjectStore
@@ -115,6 +116,17 @@ function registerIpc(): void {
       poseEn: translated[i * 2 + 1]
     }))
     return store.save({ ...project, stickers })
+  })
+
+  ipcMain.handle('text:translate', async (_e, text: string) => (await translateAll([text], (url, init) => fetch(url, init)))[0])
+
+  ipcMain.handle('reference:generate', async (_e, id: string, description: string) =>
+    store.saveCandidate(id, await generateReferenceCandidate(description)))
+
+  ipcMain.handle('reference:adopt', async (_e, id: string, candidateRel: string) => {
+    const rel = await store.adoptCandidate(id, candidateRel)
+    const project = await store.load(id)
+    return store.save({ ...project, referenceImages: [...project.referenceImages, rel] })
   })
 
   ipcMain.handle('export:run', async (_e, req: ExportRequest): Promise<ExportResponse> => {
