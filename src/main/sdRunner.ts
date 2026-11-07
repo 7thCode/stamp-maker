@@ -8,7 +8,16 @@ const run = promisify(execFile)
 
 // stable-diffusion.cpp(Metal)の環境。実行ファイルとモデルを同じ場所に置く。
 export const DEFAULT_SD_ROOT = join(homedir(), 'Library/Application Support/stampMaker/sdcpp')
-export const SD_ROOT = process.env['STAMP_SD_ROOT'] ?? DEFAULT_SD_ROOT
+
+// パッケージ版は同梱のsdcppを使う(開発時は存在しないので既定の場所になる)
+function bundledRoot(): string | undefined {
+  const resources = (process as NodeJS.Process & { resourcesPath?: string }).resourcesPath
+  if (!resources) return undefined
+  const root = join(resources, 'sdcpp')
+  return existsSync(join(root, 'bin/sd-cli')) ? root : undefined
+}
+
+export const SD_ROOT = process.env['STAMP_SD_ROOT'] ?? bundledRoot() ?? DEFAULT_SD_ROOT
 export const SD_STEPS = 4
 export const SD_SIZE = 512
 const SD_CFG_SCALE = '1.0'

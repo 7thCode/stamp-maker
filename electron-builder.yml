@@ -1,0 +1,19 @@
+appId: local.stampmaker.app
+productName: StampMaker
+directories:
+  output: dist
+files:
+  - out/**
+  - package.json
+asarUnpack:
+  - "**/node_modules/sharp/**"
+  - "**/node_modules/@img/**"
+# 画像生成のsd-cliとモデル(約8GB)を同梱する。事前に scripts/setup-sdcpp.sh を実行しておく。
+extraResources:
+  - from: build/sdcpp
+    to: sdcpp
+mac:
+  target:
+    - target: dir
+      arch: arm64
+  identity: null
