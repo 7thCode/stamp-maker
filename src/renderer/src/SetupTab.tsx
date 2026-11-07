@@ -38,7 +38,7 @@ export function SetupTab({ project, onChange, onReplace }: Props) {
       <select value={project.generator} onChange={(e) => onChange((p) => ({ ...p, generator: e.target.value }))}>
         {generators.map((g) => <option key={g.id} value={g.id}>{g.label}</option>)}
       </select>
-      <p className="warn">ローカル/クラウドの画像生成モデルは先行検証後に追加されます。</p>
+      <p className="warn">ローカル生成は表情の変更が得意で、ポーズは当たり外れがあります。気に入らない画像は再生成してください。</p>
     </div>
   )
 }

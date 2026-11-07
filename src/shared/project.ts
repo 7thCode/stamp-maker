@@ -44,7 +44,7 @@ export function newProject(id: string, name: string, now: string, makeId: () => 
     stickers: resizeStickers([], count, makeId),
     sales: { title: '', description: '', creatorName: '', copyright: '' },
     mainStickerId: null,
-    generator: 'passthrough'
+    generator: 'flux2-klein-4b-local'
   }
 }
 
