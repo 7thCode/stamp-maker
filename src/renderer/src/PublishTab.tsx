@@ -45,8 +45,9 @@ export function PublishTab({ project, onChange }: Props) {
         {pending.length === 0 ? 'すべて確認済みです' : `未確認: ${pending.length}件`}
       </p>
       <ul className="checklist">
-        {PUBLISH_CHECKLIST.map((item) => (
+        {PUBLISH_CHECKLIST.map((item, i) => (
           <li key={item.id}>
+            {item.group !== PUBLISH_CHECKLIST[i - 1]?.group && <div className="check-group">{item.group}</div>}
             <label>
               <input type="checkbox" checked={!!checks[item.id]} onChange={(e) => toggle(item.id, e.target.checked)} />
               {item.label}

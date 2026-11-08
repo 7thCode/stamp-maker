@@ -9,6 +9,8 @@ export function lineTextWeight(text: string): number {
 }
 
 const EMOJI_RE = /\p{Extended_Pictographic}/u
+// 審査基準 2.4: URLが表示されているものは不可
+const URL_RE = /https?:\/\/|www\./i
 
 export function validateSalesInfo(sales: SalesInfo): ValidationIssue[] {
   const issues: ValidationIssue[] = []
@@ -26,6 +28,9 @@ export function validateSalesInfo(sales: SalesInfo): ValidationIssue[] {
     }
     if (lineTextWeight(value) > max) {
       issues.push({ level: 'error', target: 'sales', message: `${label}が${max}文字(全角2文字換算)を超えています` })
+    }
+    if (URL_RE.test(value)) {
+      issues.push({ level: 'error', target: 'sales', message: `${label}にURLは使用できません` })
     }
     if (EMOJI_RE.test(value)) {
       issues.push({ level: 'error', target: 'sales', message: `${label}に絵文字は使用できません` })

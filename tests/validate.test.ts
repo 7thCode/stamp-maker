@@ -77,3 +77,16 @@ describe('validateImage(カラーモード)', () => {
     expect(validateImage('main', base, 'main')).toEqual([])
   })
 })
+
+describe('validateSalesInfo(URL)', () => {
+  const ok = { title: 'ねこ', creatorName: 'たろう', description: 'かわいいねこです', copyright: 'Taro' }
+  it('URLを含む文字列はエラーにする', () => {
+    for (const bad of ['詳しくは https://example.com', 'http://example.com', 'www.example.com を見てね']) {
+      const issues = validateSalesInfo({ ...ok, description: bad })
+      expect(issues.map((i) => i.message)).toContain('説明文にURLは使用できません')
+    }
+  })
+  it('URLを含まなければ指摘しない', () => {
+    expect(validateSalesInfo(ok)).toEqual([])
+  })
+})

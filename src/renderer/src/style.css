@@ -181,3 +181,4 @@ label.slider output { text-align: right; font-variant-numeric: tabular-nums; }
 .text-style .row label { display: inline-flex; gap: 6px; align-items: center; font-size: 12px; color: var(--md-on-surface-variant); }
 
 .card-title { font-weight: 500; font-size: 13px; color: var(--md-on-surface-variant); margin: 2px 4px 6px; }
+.check-group { font-size: 12px; font-weight: 500; color: var(--md-primary); margin-bottom: 6px; }
