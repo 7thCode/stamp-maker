@@ -4,10 +4,11 @@ import { ExportTab } from './ExportTab'
 import { GalleryTab } from './GalleryTab'
 import { PlanTab } from './PlanTab'
 import { SalesTab } from './SalesTab'
+import { PublishTab } from './PublishTab'
 import { SetupTab } from './SetupTab'
 
-type Tab = 'setup' | 'plan' | 'gallery' | 'sales' | 'export'
-const TABS: Array<[Tab, string]> = [['setup', '参考画像・設定'], ['plan', '構成・文言'], ['gallery', '生成・確認'], ['sales', '販売情報'], ['export', '検証・出力']]
+type Tab = 'setup' | 'plan' | 'gallery' | 'sales' | 'export' | 'publish'
+const TABS: Array<[Tab, string]> = [['setup', '参考画像・設定'], ['plan', '構成・文言'], ['gallery', '生成・確認'], ['sales', '販売情報'], ['export', '検証・出力'], ['publish', '申請準備']]
 const SAVE_DEBOUNCE_MS = 400
 
 function ProjectList({ onOpen }: { onOpen: (id: string) => void }) {
@@ -78,6 +79,7 @@ export function App() {
         {tab === 'gallery' && <GalleryTab project={project} onChange={onChange} onReplace={onReplace} />}
         {tab === 'sales' && <SalesTab project={project} onChange={onChange} />}
         {tab === 'export' && <ExportTab project={project} onChange={onChange} />}
+        {tab === 'publish' && <PublishTab project={project} onChange={onChange} />}
       </main>
     </div>
   )

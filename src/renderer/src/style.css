@@ -23,3 +23,8 @@ input[type=text], textarea, select { width: 100%; box-sizing: border-box; paddin
 .ref-remove { position: absolute; top: 2px; right: 10px; padding: 0 6px; }
 .issue-error { color: #c0392b; } .issue-warning { color: #b9770e; }
 label.field { display: block; margin-bottom: 10px; }
+.checklist { list-style: none; padding: 0; }
+.checklist li { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 8px; margin-bottom: 6px; }
+.checklist label { display: flex; gap: 8px; align-items: center; font-weight: 600; }
+.checkhint { display: block; margin: 2px 0 0 26px; color: #666; }
+.copy-value { white-space: pre-wrap; word-break: break-all; }

@@ -57,6 +57,8 @@ export interface Project {
   // メイン画像・タブ画像に使うスタンプのID
   mainStickerId: string | null
   generator: string
+  // 申請前チェックリストの確認状況(項目ID → 確認済み)
+  publishChecks: Record<string, boolean>
 }
 
 export interface ProjectSummary {

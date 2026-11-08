@@ -18,6 +18,7 @@ const api: StampApi = {
   translateText: (text) => ipcRenderer.invoke('text:translate', text),
   generateReferenceCandidate: (id, d) => ipcRenderer.invoke('reference:generate', id, d),
   adoptReferenceCandidate: (id, rel) => ipcRenderer.invoke('reference:adopt', id, rel),
+  openCreatorsMarket: () => ipcRenderer.invoke('publish:openCreatorsMarket'),
   exportSet: (req) => ipcRenderer.invoke('export:run', req)
 }
 

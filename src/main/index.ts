@@ -4,6 +4,7 @@ import { join } from 'node:path'
 import { BrowserWindow, app, dialog, ipcMain, shell } from 'electron'
 import type { ExportRequest, ExportResponse } from '../shared/api'
 import { adoptedStickers } from '../shared/project'
+import { CREATORS_MARKET_URL } from '../shared/publish'
 import type { Project } from '../shared/types'
 import { buildExport } from './exporter'
 import { exportDirPath } from './exportDir'
@@ -49,6 +50,8 @@ function registerIpc(): void {
   ipcMain.handle('project:load', (_e, id: string) => store.load(id))
   ipcMain.handle('project:save', (_e, project: Project) => store.save(project))
   ipcMain.handle('generator:list', () => listGenerators())
+  // 開く先は固定のURLのみ(画面から任意のURLは受け付けない)
+  ipcMain.handle('publish:openCreatorsMarket', () => shell.openExternal(CREATORS_MARKET_URL))
 
   ipcMain.handle('project:delete', async (_e, id: string) => {
     const project = await store.load(id)

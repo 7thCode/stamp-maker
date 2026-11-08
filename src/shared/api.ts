@@ -29,5 +29,6 @@ export interface StampApi {
   translateText(text: string): Promise<string>
   generateReferenceCandidate(id: string, description: string): Promise<string>
   adoptReferenceCandidate(id: string, candidateRel: string): Promise<Project>
+  openCreatorsMarket(): Promise<void>
   exportSet(req: ExportRequest): Promise<ExportResponse>
 }
