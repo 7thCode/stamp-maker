@@ -17,7 +17,9 @@ export interface StampApi {
   createProject(name: string): Promise<Project>
   loadProject(id: string): Promise<Project>
   saveProject(project: Project): Promise<Project>
+  deleteProject(id: string): Promise<boolean>
   importReferences(id: string): Promise<Project | null>
+  removeReference(id: string, rel: string): Promise<Project | null>
   readImage(id: string, rel: string): Promise<string>
   listGenerators(): Promise<Array<{ id: string; label: string }>>
   generateSticker(id: string, stickerId: string): Promise<Project>

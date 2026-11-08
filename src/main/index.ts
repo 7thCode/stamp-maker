@@ -7,7 +7,7 @@ import { adoptedStickers } from '../shared/project'
 import type { Project } from '../shared/types'
 import { buildExport } from './exporter'
 import { exportDirPath } from './exportDir'
-import { getGenerator, listGenerators } from './generators'
+import { getGenerator, listGenerators, pickRandomReference } from './generators'
 import { finalizeImage, removeBackground } from './imagePipeline'
 import { ProjectStore } from './projectStore'
 import { generateReferenceCandidate } from './referenceGen'
@@ -33,12 +33,35 @@ function updateSticker(project: Project, stickerId: string, patch: Partial<Proje
   return { ...project, stickers: project.stickers.map((s) => (s.id === stickerId ? { ...s, ...patch } : s)) }
 }
 
+// 削除前の確認。キャンセルなら false
+async function confirmDelete(message: string, detail: string): Promise<boolean> {
+  const options = {
+    type: 'warning' as const, buttons: ['削除', 'キャンセル'], defaultId: 1, cancelId: 1, message, detail
+  }
+  const win = BrowserWindow.getFocusedWindow()
+  const r = win ? await dialog.showMessageBox(win, options) : await dialog.showMessageBox(options)
+  return r.response === 0
+}
+
 function registerIpc(): void {
   ipcMain.handle('project:list', () => store.list())
   ipcMain.handle('project:create', (_e, name: string) => store.create(name))
   ipcMain.handle('project:load', (_e, id: string) => store.load(id))
   ipcMain.handle('project:save', (_e, project: Project) => store.save(project))
   ipcMain.handle('generator:list', () => listGenerators())
+
+  ipcMain.handle('project:delete', async (_e, id: string) => {
+    const project = await store.load(id)
+    const ok = await confirmDelete(`プロジェクト「${project.name}」を削除しますか?`, '参考画像・生成画像を含むすべてのデータが消えます。元に戻せません。')
+    if (!ok) return false
+    await store.remove(id)
+    return true
+  })
+
+  ipcMain.handle('project:removeReference', async (_e, id: string, rel: string) => {
+    const ok = await confirmDelete('この参考画像を削除しますか?', '生成済みのスタンプ画像には影響しません。元に戻せません。')
+    return ok ? store.removeReference(id, rel) : null
+  })
 
   ipcMain.handle('project:importReferences', async (_e, id: string) => {
     const r = await dialog.showOpenDialog({
@@ -64,7 +87,7 @@ function registerIpc(): void {
     if (!sticker) throw new Error('スタンプが見つかりません')
     if (sticker.status === 'adopted' && sticker.imagePath) return project // 採用済みは上書きしない
     try {
-      const refs = await Promise.all(project.referenceImages.map((r) => store.readImage(id, r)))
+      const refs = await Promise.all(pickRandomReference(project.referenceImages).map((r) => store.readImage(id, r)))
       const raw = await getGenerator(project.generator).generate({
         referenceImages: refs,
         // 英語欄が空なら入力そのまま(旧データや英語入力)

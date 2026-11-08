@@ -8,6 +8,12 @@ import { runSd } from './sdRunner'
 
 const SEED_RANGE = 1_000_000
 
+// 参考画像が複数ある場合は、生成のたびにランダムで1枚だけ使う
+export function pickRandomReference<T>(images: readonly T[], random: (max: number) => number = randomInt): T[] {
+  if (images.length === 0) return []
+  return [images[random(images.length)]]
+}
+
 // 画像生成バックエンドの差し替え口。
 // ローカル(M4)/クラウドの方式は先行検証後に確定するため、ここにプロバイダを追加する。
 export interface GenerateRequest {

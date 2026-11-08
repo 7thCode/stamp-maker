@@ -9,14 +9,19 @@ interface Props {
 }
 
 export function SetupTab({ project, onChange, onReplace }: Props) {
-  const [thumbs, setThumbs] = useState<string[]>([])
+  const [thumbs, setThumbs] = useState<Record<string, string>>({})
   const [generators, setGenerators] = useState<Array<{ id: string; label: string }>>([])
 
   useEffect(() => {
-    Promise.all(project.referenceImages.map((r) => window.stamp.readImage(project.id, r))).then(setThumbs)
+    Promise.all(project.referenceImages.map(async (r) => [r, await window.stamp.readImage(project.id, r)] as const))
+      .then((pairs) => setThumbs(Object.fromEntries(pairs)))
   }, [project.id, project.referenceImages])
   useEffect(() => { window.stamp.listGenerators().then(setGenerators) }, [])
 
+  const removeRef = async (rel: string) => {
+    const next = await window.stamp.removeReference(project.id, rel)
+    if (next) onReplace(next)
+  }
   const [translating, setTranslating] = useState(false)
   const [error, setError] = useState('')
   const translateTraits = async () => {
@@ -36,9 +41,17 @@ export function SetupTab({ project, onChange, onReplace }: Props) {
     <div>
       <h3>参考画像(PNG・JPEG)</h3>
       <div className="row refs">
-        {thumbs.map((t, i) => <img key={project.referenceImages[i]} src={t} alt={`参考画像${i + 1}`} />)}
+        {project.referenceImages.map((rel, i) => thumbs[rel] && (
+          <span key={rel} className="ref">
+            <img src={thumbs[rel]} alt={`参考画像${i + 1}`} />
+            <button className="ref-remove" title="この参考画像を削除" onClick={() => removeRef(rel)}>✕</button>
+          </span>
+        ))}
         <button onClick={importRefs}>画像を追加…</button>
       </div>
+      {project.referenceImages.length > 1 && (
+        <p className="warn">参考画像が複数ある場合は、生成のたびにランダムで1枚を使います。</p>
+      )}
       <ReferenceGenerator project={project} onReplace={onReplace} />
       <h3>キャラクター設定</h3>
       <label className="field">名前<input type="text" value={project.character.name} onChange={(e) => setChar('name', e.target.value)} /></label>

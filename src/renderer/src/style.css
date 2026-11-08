@@ -19,5 +19,7 @@ input[type=text], textarea, select { width: 100%; box-sizing: border-box; paddin
 .warn { color: #c0392b; font-size: 12px; }
 .row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; flex-wrap: wrap; }
 .refs img { height: 96px; margin-right: 8px; border: 1px solid #ddd; }
+.ref { position: relative; display: inline-block; }
+.ref-remove { position: absolute; top: 2px; right: 10px; padding: 0 6px; }
 .issue-error { color: #c0392b; } .issue-warning { color: #b9770e; }
 label.field { display: block; margin-bottom: 10px; }

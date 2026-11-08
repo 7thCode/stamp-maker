@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto'
-import { copyFile, mkdir, readFile, readdir, rename, writeFile } from 'node:fs/promises'
+import { copyFile, mkdir, readFile, readdir, rename, rm, writeFile } from 'node:fs/promises'
 import { basename, extname, join } from 'node:path'
 import { newProject } from '../shared/project'
 import type { Project, ProjectSummary } from '../shared/types'
@@ -34,6 +34,20 @@ export class ProjectStore {
     await mkdir(join(this.dir(id), 'images'), { recursive: true })
     await this.save(project)
     return project
+  }
+
+  // プロジェクトのフォルダごと削除する(IDは形式検証済み)
+  async remove(id: string): Promise<void> {
+    await rm(this.dir(id), { recursive: true, force: true })
+  }
+
+  // 参考画像を一覧とファイルの両方から削除する
+  async removeReference(id: string, rel: string): Promise<Project> {
+    const project = await this.load(id)
+    if (!project.referenceImages.includes(rel)) throw new Error('参考画像が見つかりません')
+    const next = await this.save({ ...project, referenceImages: project.referenceImages.filter((r) => r !== rel) })
+    await rm(this.resolveInside(id, rel), { force: true })
+    return next
   }
 
   async load(id: string): Promise<Project> {

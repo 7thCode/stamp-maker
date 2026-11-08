@@ -14,6 +14,9 @@ function ProjectList({ onOpen }: { onOpen: (id: string) => void }) {
   const [list, setList] = useState<ProjectSummary[]>([])
   const [name, setName] = useState('')
   useEffect(() => { window.stamp.listProjects().then(setList) }, [])
+  const remove = async (id: string) => {
+    if (await window.stamp.deleteProject(id)) setList(await window.stamp.listProjects())
+  }
   const create = async () => {
     if (!name.trim()) return
     onOpen((await window.stamp.createProject(name.trim())).id)
@@ -26,7 +29,7 @@ function ProjectList({ onOpen }: { onOpen: (id: string) => void }) {
         <button onClick={create}>作成</button>
       </div>
       <ul>
-        {list.map((p) => <li key={p.id}><button onClick={() => onOpen(p.id)}>{p.name}</button> <small>{new Date(p.updatedAt).toLocaleString()}</small></li>)}
+        {list.map((p) => <li key={p.id}><button onClick={() => onOpen(p.id)}>{p.name}</button> <small>{new Date(p.updatedAt).toLocaleString()}</small> <button onClick={() => remove(p.id)}>削除</button></li>)}
       </ul>
     </main>
   )
