@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import type { Project } from '../../shared/types'
+import { translateOrKeep } from '../../shared/translateFallback'
 
 const CANDIDATE_COUNT = 4
 
@@ -17,15 +18,17 @@ export function ReferenceGenerator({ project, onReplace }: Props) {
   const [busy, setBusy] = useState(false)
   const [status, setStatus] = useState('')
   const [error, setError] = useState('')
+  const [notice, setNotice] = useState('')
   const cancelRef = useRef(false)
 
   const generate = async () => {
     cancelRef.current = false
-    setBusy(true); setError(''); setCandidates([])
+    setBusy(true); setError(''); setNotice(''); setCandidates([])
     try {
-      // 日本語なら英訳してから生成する(英訳は表示して確認できる)
+      // 日本語なら英訳してから生成する。Ollama が使えないときは、入力をそのまま使う
       setStatus('説明を英訳中…(初回は数分かかることがあります)')
-      const prompt = await window.stamp.translateText(description)
+      const { text: prompt, fallbackReason } = await translateOrKeep(description, window.stamp.translateText)
+      if (fallbackReason) setNotice(`英訳できなかったため、入力した文章をそのまま使います(${fallbackReason})`)
       for (let i = 0; i < CANDIDATE_COUNT; i++) {
         if (cancelRef.current) break
         setStatus(`${prompt} — 生成中 ${i + 1}/${CANDIDATE_COUNT}`)
@@ -58,6 +61,7 @@ export function ReferenceGenerator({ project, onReplace }: Props) {
         <span>{status}</span>
         {error && <span className="warn">{error}</span>}
       </div>
+      {notice && <p className="hint">{notice}。英語で入力すると、より意図に近い画像になります。</p>}
       {busy && <div className="progress indeterminate" role="status"><div className="progress-bar" /></div>}
       <div className="row refs">
         {candidates.map((c) => (
