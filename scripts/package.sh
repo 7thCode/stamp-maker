@@ -13,4 +13,4 @@ mkdir -p build
 ln -sfn "$SD_BUNDLE_DIR" build/sdcpp
 
 npx electron-vite build
-npx electron-builder --mac --arm64
+npx electron-builder --mac dir --arm64 --config electron-builder.bundled.yml

@@ -1,0 +1,6 @@
+# モデル込みの .app を作る構成(scripts/package.sh から使う)。
+# 画像生成の sd-cli とモデル(約8GB)を同梱する。事前に scripts/setup-sdcpp.sh を実行しておく。
+extends: electron-builder.yml
+extraResources:
+  - from: build/sdcpp
+    to: sdcpp

@@ -8,13 +8,10 @@ files:
 asarUnpack:
   - "**/node_modules/sharp/**"
   - "**/node_modules/@img/**"
-# 画像生成のsd-cliとモデル(約8GB)を同梱する。事前に scripts/setup-sdcpp.sh を実行しておく。
-extraResources:
-  - from: build/sdcpp
-    to: sdcpp
+# CI・配布用の既定構成(モデルは同梱しない)。モデル込みは electron-builder.bundled.yml
 mac:
   icon: resources/icon.icns
   target:
-    - target: dir
+    - target: dmg
       arch: arm64
   identity: null

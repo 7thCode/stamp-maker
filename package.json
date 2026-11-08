@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "description": "LINEスタンプ制作支援デスクトップアプリ",
   "private": true,
+  "author": "7thCode",
+  "license": "MIT",
+  "repository": { "type": "git", "url": "git+https://github.com/7thCode/stamp-maker.git" },
   "main": "out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",

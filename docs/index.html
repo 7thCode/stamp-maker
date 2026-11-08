@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>stamp-maker</title>
+    <style>
+      :root {
+        --bg: #ffffff;
+        --bg-alt: #f5f5f7;
+        --border: #d9d9df;
+        --text: #1b1b1f;
+        --text-muted: #6b6b76;
+        --accent: #2f6fed;
+        color-scheme: light dark;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #1b1b1f;
+          --bg-alt: #242429;
+          --border: #35353c;
+          --text: #f0f0f2;
+          --text-muted: #9a9aa5;
+          --accent: #5b8dfd;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          -apple-system,
+          BlinkMacSystemFont,
+          'Segoe UI',
+          Roboto,
+          sans-serif;
+        line-height: 1.6;
+      }
+      main {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 48px 20px 80px;
+      }
+      h1 {
+        font-size: 28px;
+        margin-bottom: 4px;
+      }
+      .subtitle {
+        color: var(--text-muted);
+        margin-top: 0;
+        margin-bottom: 32px;
+      }
+      .download-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+        margin-bottom: 16px;
+      }
+      .download-card {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 24px;
+        background: var(--bg-alt);
+        display: flex;
+        flex-direction: column;
+      }
+      .download-card strong {
+        display: block;
+        margin-bottom: 4px;
+      }
+      .download-card .platform-sub {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin-bottom: 12px;
+      }
+      .download-button {
+        display: inline-block;
+        background: var(--accent);
+        color: #fff;
+        text-decoration: none;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        text-align: center;
+        margin-top: auto;
+      }
+      .meta {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin-top: 20px;
+      }
+      h2 {
+        font-size: 18px;
+        margin-top: 40px;
+      }
+      ul {
+        padding-left: 20px;
+      }
+      code {
+        background: var(--bg-alt);
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 0.9em;
+      }
+      footer {
+        margin-top: 48px;
+        font-size: 13px;
+        color: var(--text-muted);
+      }
+      a {
+        color: var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>stamp-maker</h1>
+      <p class="subtitle">LINEスタンプの制作を助けるデスクトップアプリ(macOS)。画像生成はローカルで行います。</p>
+
+      <p><strong>最新版: v0.1.0</strong>(リリース後に更新)</p>
+      <div class="download-grid">
+        <div class="download-card">
+          <strong>macOS</strong>
+          <span class="platform-sub">Apple Silicon (arm64)</span>
+          <a
+            class="download-button"
+            href="https://github.com/7thCode/stamp-maker/releases/latest"
+          >
+            最新版をダウンロード
+          </a>
+        </div>
+      </div>
+      <p class="meta">
+        過去のリリース一覧は <a href="https://github.com/7thCode/stamp-maker/releases">Releases</a> から確認できます。
+      </p>
+
+      <h2>主な機能</h2>
+      <ul>
+        <li>参考画像から、表情・ポーズ違いのスタンプ画像をローカルで生成(FLUX.2 klein 4B / stable-diffusion.cpp)</li>
+        <li>文字の合成、LINE の仕様検証、PNG と ZIP の書き出し、申請前チェック</li>
+        <li>動作環境: macOS(Apple Silicon)。モデル(約8GB)は付属せず、README の手順で用意します</li>
+      </ul>
+
+      <h2>ソースコード</h2>
+      <p>
+        <a href="https://github.com/7thCode/stamp-maker">github.com/7thCode/stamp-maker</a>
+      </p>
+
+      <footer>LINE 社とは無関係の非公式ツールです。</footer>
+    </main>
+  </body>
+</html>
