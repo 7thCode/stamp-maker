@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { needsTranslation, parseTranslation, translateAll, type FetchLike } from '../src/main/translator'
+import { needsTranslation, parseTranslation, pickModel, translateAll, type FetchLike } from '../src/main/translator'
 
 function fakeFetch(map: Record<string, string>, calls: Array<Record<string, unknown>> = []): FetchLike {
-  return async (_url, init) => {
-    const req = JSON.parse(init.body) as { prompt: string; keep_alive: unknown }
+  return async (url, init) => {
+    // モデル一覧の取得は、gpt-oss:20b が入っている前提で答える
+    if (url.endsWith('/api/tags')) return { ok: true, status: 200, json: async () => ({ models: [{ name: 'gpt-oss:20b' }] }) }
+    const req = JSON.parse(init.body ?? '{}') as { prompt: string; keep_alive: unknown }
     calls.push(req as Record<string, unknown>)
     const src = req.prompt.split('\n\n').pop() as string
     return { ok: true, status: 200, json: async () => ({ response: map[src] ?? '?' }) }
@@ -63,3 +65,45 @@ describe('translateAll', () => {
     await expect(translateAll(['あ'], bad)).rejects.toThrow('502')
   })
 })
+
+describe('pickModel', () => {
+  it('既定のモデルがあればそれを使う', () => {
+    expect(pickModel(['qwen3:8b', 'gpt-oss:20b', 'gpt-oss:120b'], 'gpt-oss:20b')).toBe('gpt-oss:20b')
+  })
+  it('既定のタグが無くても gpt-oss 系があればそれを使う', () => {
+    expect(pickModel(['qwen3:8b', 'gpt-oss:120b'], 'gpt-oss:20b')).toBe('gpt-oss:120b')
+    expect(pickModel(['gpt-oss:latest'], 'gpt-oss:20b')).toBe('gpt-oss:latest')
+    expect(pickModel(['gpt-oss'], 'gpt-oss:20b')).toBe('gpt-oss')
+  })
+  it('gpt-oss 系が無ければ null', () => {
+    expect(pickModel(['qwen3:8b', 'gpt-ossify:1b'], 'gpt-oss:20b')).toBeNull()
+    expect(pickModel([], 'gpt-oss:20b')).toBeNull()
+  })
+})
+
+describe('translateAll のモデル選択', () => {
+  const tagsThen = (models: string[], calls: Array<Record<string, unknown>>): FetchLike => async (url, init) => {
+    if (url.endsWith('/api/tags')) return { ok: true, status: 200, json: async () => ({ models: models.map((name) => ({ name })) }) }
+    calls.push(JSON.parse(init.body ?? '{}'))
+    return { ok: true, status: 200, json: async () => ({ response: 'smile' }) }
+  }
+  it('入っている gpt-oss 系のタグで翻訳する', async () => {
+    const calls: Array<Record<string, unknown>> = []
+    await translateAll(['笑顔'], tagsThen(['gpt-oss:120b'], calls))
+    expect(calls[0]['model']).toBe('gpt-oss:120b')
+  })
+  it('gpt-oss 系が無いときは入っているモデルを示して知らせる', async () => {
+    await expect(translateAll(['笑顔'], tagsThen(['qwen3:8b'], []))).rejects.toThrow('入っているモデル: qwen3:8b')
+  })
+  it('一覧を取得できなければ既定のモデルで試す', async () => {
+    const calls: Array<Record<string, unknown>> = []
+    const noTags: FetchLike = async (url, init) => {
+      if (url.endsWith('/api/tags')) return { ok: false, status: 500, json: async () => ({}) }
+      calls.push(JSON.parse(init.body ?? '{}'))
+      return { ok: true, status: 200, json: async () => ({ response: 'smile' }) }
+    }
+    await translateAll(['笑顔'], noTags)
+    expect(calls[0]['model']).toBe('gpt-oss:20b')
+  })
+})
+

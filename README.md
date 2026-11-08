@@ -85,7 +85,7 @@ dmg にはモデルが入っていません。
 
 ### 英訳機能(任意)
 
-[Ollama](https://ollama.com) を入れ、`ollama pull gpt-oss:20b`(約13GB)を実行します。Ollama を起動した状態で、「参考画像・設定」の英訳ボタンが使えます。使わない場合は、英語の欄へ直接入力してください。
+[Ollama](https://ollama.com) を入れ、`ollama pull gpt-oss:20b`(約13GB)を実行します。Ollama を起動した状態で、「参考画像・設定」の英訳ボタンが使えます。`gpt-oss:20b` が無くても、`gpt-oss:120b` など `gpt-oss` 系のモデルが入っていれば自動で使います。別のモデルを使う場合は、環境変数 `STAMP_TRANSLATE_MODEL` で指定します。使わない場合は、英語の欄へ直接入力してください。
 
 ### 開発環境のプロジェクトを引き継ぐ
 
