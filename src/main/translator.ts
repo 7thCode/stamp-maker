@@ -35,6 +35,15 @@ export function parseTranslation(body: unknown): string {
   return response.trim().replace(/^["「]|["」]$/g, '')
 }
 
+// Ollamaのエラー応答から原因を取り出す。404のときだけモデル未取得とみなし、それ以外は返された内容をそのまま示す
+async function describeHttpError(res: { status: number; json(): Promise<unknown> }): Promise<string> {
+  const body = await res.json().catch(() => null)
+  const detail = (body as { error?: unknown } | null)?.error
+  const reason = typeof detail === 'string' && detail ? `: ${detail}` : ''
+  if (res.status === 404) return `Ollamaにモデル ${OLLAMA_MODEL} が見つかりません(404)${reason}`
+  return `Ollamaがエラーを返しました(${res.status})${reason}`
+}
+
 // 日本語を含む項目だけ翻訳し、結果を同じ並びで返す(英語のみ・空は素通し)
 export async function translateAll(texts: readonly string[], fetchFn: FetchLike): Promise<string[]> {
   const targets = texts.map((t, i) => (needsTranslation(t) ? i : -1)).filter((i) => i >= 0)
@@ -50,7 +59,7 @@ export async function translateAll(texts: readonly string[], fetchFn: FetchLike)
         body: JSON.stringify(buildTranslationRequest(texts[index], keepAlive)),
         signal: ctrl.signal
       })
-      if (!res.ok) throw new Error(`Ollamaがエラーを返しました(${res.status})。モデル ${OLLAMA_MODEL} が入っているか確認してください`)
+      if (!res.ok) throw new Error(await describeHttpError(res))
       out[index] = parseTranslation(await res.json())
     } catch (err) {
       if (err instanceof TypeError || (err instanceof Error && err.name === 'AbortError')) {

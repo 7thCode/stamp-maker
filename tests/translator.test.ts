@@ -47,8 +47,19 @@ describe('translateAll', () => {
     const failing: FetchLike = async () => { throw new TypeError('fetch failed') }
     await expect(translateAll(['あ'], failing)).rejects.toThrow('Ollamaに接続できません')
   })
-  it('HTTPエラーは日本語のエラーにする', async () => {
-    const bad: FetchLike = async () => ({ ok: false, status: 404, json: async () => ({}) })
-    await expect(translateAll(['あ'], bad)).rejects.toThrow('404')
+  it('404はモデル未取得として知らせる', async () => {
+    const bad: FetchLike = async () => ({ ok: false, status: 404, json: async () => ({ error: 'model not found' }) })
+    await expect(translateAll(['あ'], bad)).rejects.toThrow('見つかりません(404): model not found')
+  })
+  it('404以外はOllamaの返した原因をそのまま示し、モデル未取得とは言わない', async () => {
+    const bad: FetchLike = async () => ({ ok: false, status: 500, json: async () => ({ error: 'model requires more system memory' }) })
+    const err = await translateAll(['あ'], bad).catch((e: Error) => e)
+    expect((err as Error).message).toContain('500')
+    expect((err as Error).message).toContain('model requires more system memory')
+    expect((err as Error).message).not.toContain('見つかりません')
+  })
+  it('エラー本文がJSONでなくても状態コードを示す', async () => {
+    const bad: FetchLike = async () => ({ ok: false, status: 502, json: async () => { throw new SyntaxError('bad json') } })
+    await expect(translateAll(['あ'], bad)).rejects.toThrow('502')
   })
 })
