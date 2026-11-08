@@ -48,7 +48,7 @@ export function ExportTab({ project, onChange }: Props) {
             {adopted.map((s) => <option key={s.id} value={s.id}>{label(s.id)} {s.text}</option>)}
           </select>
         </label>
-        <button disabled={busy} onClick={run}>検証して書き出し</button>
+        <button className="primary" disabled={busy} onClick={run}>検証して書き出し</button>
       </div>
       {outDir && <p>書き出しました: {outDir}</p>}
       <ul>

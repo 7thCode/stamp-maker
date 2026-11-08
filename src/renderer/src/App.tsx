@@ -27,10 +27,10 @@ function ProjectList({ onOpen }: { onOpen: (id: string) => void }) {
       <h2>プロジェクト</h2>
       <div className="row">
         <input type="text" placeholder="新しいプロジェクト名" value={name} onChange={(e) => setName(e.target.value)} style={{ width: 280 }} />
-        <button onClick={create}>作成</button>
+        <button className="primary" onClick={create}>作成</button>
       </div>
-      <ul>
-        {list.map((p) => <li key={p.id}><button onClick={() => onOpen(p.id)}>{p.name}</button> <small>{new Date(p.updatedAt).toLocaleString()}</small> <button onClick={() => remove(p.id)}>削除</button></li>)}
+      <ul className="project-list">
+        {list.map((p) => <li key={p.id}><button className="name" onClick={() => onOpen(p.id)}>{p.name}</button><small>{new Date(p.updatedAt).toLocaleString()}</small><button className="text danger" onClick={() => remove(p.id)}>削除</button></li>)}
       </ul>
     </main>
   )
@@ -70,8 +70,8 @@ export function App() {
     <div className="app">
       <header>
         <h1>{project.name}</h1>
-        <nav>{TABS.map(([t, l]) => <button key={t} className={t === tab ? 'active' : ''} onClick={() => setTab(t)}>{l}</button>)}</nav>
-        <button onClick={close}>一覧へ</button>
+        <nav className="tabs">{TABS.map(([t, l]) => <button key={t} className={t === tab ? 'tab active' : 'tab'} onClick={() => setTab(t)}>{l}</button>)}</nav>
+        <button className="text" onClick={close}>一覧へ</button>
       </header>
       <main>
         {tab === 'setup' && <SetupTab project={project} onChange={onChange} onReplace={onReplace} />}
