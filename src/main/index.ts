@@ -6,6 +6,7 @@ import type { ExportRequest, ExportResponse } from '../shared/api'
 import { adoptedStickers } from '../shared/project'
 import type { Project } from '../shared/types'
 import { buildExport } from './exporter'
+import { exportDirPath } from './exportDir'
 import { getGenerator, listGenerators } from './generators'
 import { finalizeImage, removeBackground } from './imagePipeline'
 import { ProjectStore } from './projectStore'
@@ -142,7 +143,7 @@ function registerIpc(): void {
     })
     if (!result.files || !result.zip) return { issues: result.issues, outputDir: null }
 
-    const outDir = join(store.dir(req.projectId), 'exports', new Date().toISOString().replace(/[:.]/g, '-'))
+    const outDir = exportDirPath(app.getPath('downloads'), project.name, new Date())
     await mkdir(outDir, { recursive: true })
     for (const [name, data] of Object.entries(result.files)) await writeFile(join(outDir, name), data)
     await writeFile(join(outDir, 'stamps.zip'), result.zip)
