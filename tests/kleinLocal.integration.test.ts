@@ -1,10 +1,11 @@
 import { existsSync, readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import sharp from 'sharp'
 import { describe, expect, it } from 'vitest'
 import { getGenerator } from '../src/main/generators'
 import { missingSdFiles } from '../src/main/sdRunner'
 
-const REFERENCE = '/Users/oda/Desktop/IMG_4815.PNG'
+const REFERENCE = join(__dirname, 'fixtures/reference.png')
 const ready = missingSdFiles().length === 0 && existsSync(REFERENCE)
 const GENERATE_TIMEOUT_MS = 180_000
 
