@@ -42,6 +42,72 @@ npm run dev
 
 配置先は環境変数 `STAMP_SD_ROOT` で変えられます。英訳の接続先とモデルは `STAMP_OLLAMA_URL`、`STAMP_TRANSLATE_MODEL` で変えられます。
 
+## インストール(実環境へ)
+
+開発環境を使わず、`/Applications` に入れて使う手順です。
+
+### A. モデル同梱版(`npm run package` で作った .app)
+
+`sd-cli` とモデルが入っているため、追加の準備は不要です(約8.5GB)。
+
+1. 開発用のMacで `npm run package` を実行し、`dist/mac-arm64/StampMaker.app` を作る。
+2. 起動中なら終了してから、`/Applications` へコピーする。サイズが大きいので `ditto` を使う。
+
+   ```bash
+   ditto dist/mac-arm64/StampMaker.app /Applications/StampMaker.app
+   ```
+
+3. 別のMacへ運ぶ場合は、外付けディスクなどで `.app` ごとコピーし、2. と同じコマンドで入れる。ネットワーク経由で受け取ったときは、隔離属性を外す。
+
+   ```bash
+   xattr -dr com.apple.quarantine /Applications/StampMaker.app
+   ```
+
+4. 初回は、未署名のため Gatekeeper の警告が出る。Finder で右クリックして「開く」を選ぶ(警告が出ない場合は不要)。
+5. 起動して、プロジェクトを作成できれば完了。
+
+同じ場所へ上書きコピーすれば更新できます。プロジェクトは別の場所にあるため、消えません。
+
+### B. dmg 版(GitHub Actions / Release の成果物)
+
+dmg にはモデルが入っていません。
+
+1. dmg を開き、`StampMaker.app` を `/Applications` へドラッグする。警告が出たら A-4 と同じ手順で開く。
+2. モデルを用意する。`git` と `cmake` が必要。
+
+   ```bash
+   git clone https://github.com/7thCode/stamp-maker.git
+   cd stamp-maker
+   scripts/setup-sdcpp.sh
+   ```
+
+   `~/Library/Application Support/stampMaker/sdcpp/` に `sd-cli` とモデル(約8GB)が置かれ、アプリが自動で使います。
+
+### 英訳機能(任意)
+
+[Ollama](https://ollama.com) を入れ、`ollama pull gpt-oss:20b`(約13GB)を実行します。Ollama を起動した状態で、「参考画像・設定」の英訳ボタンが使えます。使わない場合は、英語の欄へ直接入力してください。
+
+### 開発環境のプロジェクトを引き継ぐ
+
+開発版と実環境版は、同じ `~/Library/Application Support/StampMaker/` を使うため、移行は不要です。別のMacへ移すときは、`projects/` フォルダをコピーしてください。
+
+### アンインストール
+
+```bash
+rm -rf /Applications/StampMaker.app
+```
+
+プロジェクトを消す場合は `~/Library/Application Support/StampMaker/` を、モデルを消す場合は `~/Library/Application Support/stampMaker/sdcpp/` を削除します。macOS は大文字小文字を区別しないため、2つは同じフォルダの中にあります。削除すると元に戻せません。
+
+### うまくいかないとき
+
+| 症状 | 対処 |
+|---|---|
+| 「壊れているため開けません」と出る | `xattr -dr com.apple.quarantine /Applications/StampMaker.app` を実行する |
+| 生成時にモデルが見つからないと出る(dmg 版) | `scripts/setup-sdcpp.sh` を実行する |
+| 生成が途中で失敗する | 他の重いアプリを閉じてメモリを空ける(ピーク約10GB) |
+| 英訳できない | Ollama が起動しているか、`gpt-oss:20b` を取得済みか確認する |
+
 ## 使い方
 
 1. プロジェクトを作成し、「参考画像・設定」で参考画像と維持したい特徴を入れる。
