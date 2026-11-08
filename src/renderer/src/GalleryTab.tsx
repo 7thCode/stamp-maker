@@ -32,7 +32,7 @@ function Card({ project, sticker, busy, onChange, onGenerate, onReplace }: {
         <label><input type="checkbox" checked={dark} onChange={(e) => setDark(e.target.checked)} />暗背景</label>
       </div>
       <div className="row">
-        <button disabled={busy || sticker.status === 'adopted'} onClick={() => onGenerate(sticker.id)}>
+        <button className="primary" disabled={busy || sticker.status === 'adopted'} onClick={() => onGenerate(sticker.id)}>
           {sticker.job === 'failed' ? '再実行' : sticker.imagePath ? '再生成' : '生成'}
         </button>
         <button onClick={async () => { const n = await window.stamp.importStickerImage(project.id, sticker.id); if (n) onReplace(n) }}>差替</button>
@@ -81,7 +81,7 @@ export function GalleryTab({ project, onChange, onReplace }: Props) {
   return (
     <div>
       <div className="row">
-        <button disabled={busy} onClick={generateAll}>未生成・失敗分を一括生成</button>
+        <button className="primary" disabled={busy} onClick={generateAll}>未生成・失敗分を一括生成</button>
         <button disabled={!busy} onClick={() => { cancelRef.current = true }}>キャンセル</button>
         <span>{done} / {project.stickers.length} 枚 画像あり</span>
         {error && <span className="warn">{error}</span>}

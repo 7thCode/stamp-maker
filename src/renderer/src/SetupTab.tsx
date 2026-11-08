@@ -44,13 +44,13 @@ export function SetupTab({ project, onChange, onReplace }: Props) {
         {project.referenceImages.map((rel, i) => thumbs[rel] && (
           <span key={rel} className="ref">
             <img src={thumbs[rel]} alt={`参考画像${i + 1}`} />
-            <button className="ref-remove" title="この参考画像を削除" onClick={() => removeRef(rel)}>✕</button>
+            <button className="ref-remove text" title="この参考画像を削除" onClick={() => removeRef(rel)}>✕</button>
           </span>
         ))}
         <button onClick={importRefs}>画像を追加…</button>
       </div>
       {project.referenceImages.length > 1 && (
-        <p className="warn">参考画像が複数ある場合は、生成のたびにランダムで1枚を使います。</p>
+        <p className="hint">参考画像が複数ある場合は、生成のたびにランダムで1枚を使います。</p>
       )}
       <ReferenceGenerator project={project} onReplace={onReplace} />
       <h3>キャラクター設定</h3>
@@ -60,7 +60,7 @@ export function SetupTab({ project, onChange, onReplace }: Props) {
         <button onClick={translateTraits} disabled={translating || !project.character.keepTraits.trim()}>
           {translating ? '英訳中…' : '特徴を英訳(Ollama)'}
         </button>
-        <span className="warn" style={{ color: "inherit" }}>生成には英語が使われます。必要なら下の英語欄を直接編集できます。</span>
+        <span className="hint">生成には英語が使われます。必要なら下の英語欄を直接編集できます。</span>
       </div>
       {error && <p className="warn">{error}</p>}
       <label className="field">維持したい特徴(英語・生成に使用)<textarea rows={3} value={project.character.keepTraitsEn ?? ''} onChange={(e) => setChar('keepTraitsEn', e.target.value)} /></label>
@@ -69,7 +69,7 @@ export function SetupTab({ project, onChange, onReplace }: Props) {
       <select value={project.generator} onChange={(e) => onChange((p) => ({ ...p, generator: e.target.value }))}>
         {generators.map((g) => <option key={g.id} value={g.id}>{g.label}</option>)}
       </select>
-      <p className="warn">ローカル生成は表情の変更が得意で、ポーズは当たり外れがあります。気に入らない画像は再生成してください。</p>
+      <p className="hint">ローカル生成は表情の変更が得意で、ポーズは当たり外れがあります。気に入らない画像は再生成してください。</p>
     </div>
   )
 }

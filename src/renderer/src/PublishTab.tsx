@@ -41,7 +41,7 @@ export function PublishTab({ project, onChange }: Props) {
   return (
     <div>
       <h3>申請前チェック</h3>
-      <p className="warn" style={{ color: pending.length === 0 ? '#1e8449' : undefined }}>
+      <p className={pending.length === 0 ? 'ok' : 'hint'}>
         {pending.length === 0 ? 'すべて確認済みです' : `未確認: ${pending.length}件`}
       </p>
       <ul className="checklist">
@@ -76,7 +76,7 @@ export function PublishTab({ project, onChange }: Props) {
       <h3>申請の流れ(目安)</h3>
       <ol>{STEPS.map((s) => <li key={s}>{s}</li>)}</ol>
       <div className="row">
-        <button onClick={open}>LINE Creators Market を開く</button>
+        <button className="primary" onClick={open}>LINE Creators Market を開く</button>
         <small>画面や手順は LINE 側の変更で変わることがあります。最新の案内に従ってください。</small>
       </div>
       {error && <p className="warn">{error}</p>}

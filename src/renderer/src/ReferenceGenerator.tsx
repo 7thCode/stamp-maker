@@ -53,7 +53,7 @@ export function ReferenceGenerator({ project, onReplace }: Props) {
           onChange={(e) => setDescription(e.target.value)} />
       </label>
       <div className="row">
-        <button disabled={busy || !description.trim()} onClick={generate}>候補を{CANDIDATE_COUNT}枚生成</button>
+        <button className="primary" disabled={busy || !description.trim()} onClick={generate}>候補を{CANDIDATE_COUNT}枚生成</button>
         <button disabled={!busy} onClick={() => { cancelRef.current = true }}>中止</button>
         <span>{status}</span>
         {error && <span className="warn">{error}</span>}
