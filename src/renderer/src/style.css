@@ -171,3 +171,11 @@ tr:last-child > td, tr:last-child > th { border-bottom: none; }
 @media (prefers-reduced-motion: reduce) {
   .spinner, .progress.indeterminate .progress-bar { animation-duration: 3s; }
 }
+
+/* 文字の設定 */
+.text-style { margin: 8px 0; }
+.text-style summary { cursor: pointer; font-weight: 500; color: var(--md-primary); padding: 4px 0; }
+.text-style label.field { margin: 8px 0; }
+label.slider { display: grid; grid-template-columns: 5.5em 1fr 3em; align-items: center; gap: 8px; margin: 4px 0; font-size: 12px; color: var(--md-on-surface-variant); }
+label.slider output { text-align: right; font-variant-numeric: tabular-nums; }
+.text-style .row label { display: inline-flex; gap: 6px; align-items: center; font-size: 12px; color: var(--md-on-surface-variant); }

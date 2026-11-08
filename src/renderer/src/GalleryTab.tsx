@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Project, Sticker, StickerStatus } from '../../shared/types'
+import { fontOptions } from '../../shared/fonts'
+import { isFontAvailable } from './compose'
 import { StickerCanvas } from './StickerCanvas'
 
 interface Props {
@@ -19,6 +21,16 @@ function Elapsed() {
     return () => clearInterval(id)
   }, [])
   return <>{sec}秒</>
+}
+
+// 書体の使用可否は起動中に変わらないので、結果を覚えておく
+const fontAvailability = new Map<string, boolean>()
+function fontAvailable(family: string): boolean {
+  const known = fontAvailability.get(family)
+  if (known !== undefined) return known
+  const result = isFontAvailable(family)
+  fontAvailability.set(family, result)
+  return result
 }
 
 const STATUS_LABEL: Record<StickerStatus, string> = { unchecked: '未確認', adopted: '採用', needsFix: '要修正' }
@@ -59,15 +71,22 @@ function Card({ project, sticker, busy, generating, onChange, onGenerate, onRepl
         <button onClick={async () => { const n = await window.stamp.importStickerImage(project.id, sticker.id); if (n) onReplace(n) }}>差替</button>
         <button disabled={!sticker.imagePath} onClick={async () => onReplace(await window.stamp.removeBackground(project.id, sticker.id))}>背景透過</button>
       </div>
-      <div className="row">
-        サイズ<input type="range" min={16} max={80} value={sticker.textStyle.fontSize} onChange={(e) => style({ fontSize: Number(e.target.value) })} />
-        縦位置<input type="range" min={0.1} max={0.95} step={0.01} value={sticker.textStyle.y} onChange={(e) => style({ y: Number(e.target.value) })} />
-      </div>
-      <div className="row">
-        <input type="color" value={sticker.textStyle.color} onChange={(e) => style({ color: e.target.value })} />
-        縁<input type="color" value={sticker.textStyle.strokeColor} onChange={(e) => style({ strokeColor: e.target.value })} />
-        <input type="range" min={0} max={16} value={sticker.textStyle.strokeWidth} onChange={(e) => style({ strokeWidth: Number(e.target.value) })} />
-      </div>
+      <details className="text-style">
+        <summary>文字の設定</summary>
+        <label className="field">書体
+          <select value={sticker.textStyle.fontFamily} onChange={(e) => style({ fontFamily: e.target.value })}>
+            {fontOptions(fontAvailable, sticker.textStyle.fontFamily).map((f) => <option key={f.family} value={f.family}>{f.label}</option>)}
+          </select>
+        </label>
+        <label className="slider">サイズ<input type="range" min={16} max={80} value={sticker.textStyle.fontSize} onChange={(e) => style({ fontSize: Number(e.target.value) })} /><output>{sticker.textStyle.fontSize}</output></label>
+        <label className="slider">上下位置<input type="range" min={0.1} max={0.95} step={0.01} value={sticker.textStyle.y} onChange={(e) => style({ y: Number(e.target.value) })} /><output>{Math.round(sticker.textStyle.y * 100)}%</output></label>
+        <label className="slider">左右位置<input type="range" min={0.1} max={0.9} step={0.01} value={sticker.textStyle.x} onChange={(e) => style({ x: Number(e.target.value) })} /><output>{Math.round(sticker.textStyle.x * 100)}%</output></label>
+        <div className="row">
+          <label>文字色<input type="color" value={sticker.textStyle.color} onChange={(e) => style({ color: e.target.value })} /></label>
+          <label>縁の色<input type="color" value={sticker.textStyle.strokeColor} onChange={(e) => style({ strokeColor: e.target.value })} /></label>
+        </div>
+        <label className="slider">縁の太さ<input type="range" min={0} max={16} value={sticker.textStyle.strokeWidth} onChange={(e) => style({ strokeWidth: Number(e.target.value) })} /><output>{sticker.textStyle.strokeWidth}</output></label>
+      </details>
       {sticker.job === 'failed' && <div className="warn">生成に失敗しました</div>}
     </div>
   )
