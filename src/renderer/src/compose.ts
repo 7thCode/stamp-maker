@@ -77,3 +77,15 @@ export function canvasToPng(canvas: HTMLCanvasElement): Promise<ArrayBuffer> {
     canvas.toBlob((blob) => (blob ? blob.arrayBuffer().then(resolve) : reject(new Error('PNG変換に失敗'))), 'image/png')
   })
 }
+
+// 書体がこの環境にあるかを、代替書体との幅の違いで判定する
+const PROBE_TEXT = 'あいうえおABCabc永字八法'
+const PROBE_FALLBACKS = ['serif', 'sans-serif', 'monospace']
+const PROBE_SIZE = 72
+
+export function isFontAvailable(family: string): boolean {
+  const ctx = document.createElement('canvas').getContext('2d')
+  if (!ctx) return true
+  const width = (font: string) => { ctx.font = `bold ${PROBE_SIZE}px ${font}`; return ctx.measureText(PROBE_TEXT).width }
+  return PROBE_FALLBACKS.some((fb) => width(`"${family}", ${fb}`) !== width(fb))
+}

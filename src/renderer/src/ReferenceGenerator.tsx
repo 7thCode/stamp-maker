@@ -58,6 +58,7 @@ export function ReferenceGenerator({ project, onReplace }: Props) {
         <span>{status}</span>
         {error && <span className="warn">{error}</span>}
       </div>
+      {busy && <div className="progress indeterminate" role="status"><div className="progress-bar" /></div>}
       <div className="row refs">
         {candidates.map((c) => (
           <div key={c.rel}>
