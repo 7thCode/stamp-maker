@@ -3,153 +3,380 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>stamp-maker</title>
+    <title>stamp-maker | あなたのキャラで、LINEスタンプを。</title>
+    <meta
+      name="description"
+      content="参考画像1枚から、表情もポーズも違うLINEスタンプを最大40個。画像生成はあなたのMacの中だけで完結。文字入れ、LINE仕様の検証、書き出しまでできるmacOSアプリ。"
+    />
+    <meta name="theme-color" content="#06c755" />
     <style>
       :root {
-        --bg: #ffffff;
-        --bg-alt: #f5f5f7;
-        --border: #d9d9df;
-        --text: #1b1b1f;
-        --text-muted: #6b6b76;
-        --accent: #2f6fed;
-        color-scheme: light dark;
+        --green: #06c755;
+        --green-dark: #04a645;
+        --green-soft: #e6f9ee;
+        --sky: #8fa8d6;
+        --sun: #ffd24a;
+        --pink: #ff8fb1;
+        --ink: #23302a;
+        --ink-soft: #5d6b63;
+        --bg: #fffdf7;
+        --card: #ffffff;
+        --line: #e4eadf;
+        color-scheme: light;
       }
-      @media (prefers-color-scheme: dark) {
-        :root {
-          --bg: #1b1b1f;
-          --bg-alt: #242429;
-          --border: #35353c;
-          --text: #f0f0f2;
-          --text-muted: #9a9aa5;
-          --accent: #5b8dfd;
-        }
-      }
-      * {
-        box-sizing: border-box;
-      }
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
       body {
         margin: 0;
         background: var(--bg);
-        color: var(--text);
-        font-family:
-          -apple-system,
-          BlinkMacSystemFont,
-          'Segoe UI',
-          Roboto,
-          sans-serif;
-        line-height: 1.6;
+        color: var(--ink);
+        font-family: 'Hiragino Maru Gothic ProN', 'Hiragino Sans', 'Yu Gothic UI', 'Meiryo', sans-serif;
+        line-height: 1.7;
       }
-      main {
-        max-width: 720px;
-        margin: 0 auto;
-        padding: 48px 20px 80px;
-      }
-      h1 {
-        font-size: 28px;
-        margin-bottom: 4px;
-      }
-      .subtitle {
-        color: var(--text-muted);
-        margin-top: 0;
-        margin-bottom: 32px;
-      }
-      .download-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 16px;
-        margin-bottom: 16px;
-      }
-      .download-card {
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        padding: 24px;
-        background: var(--bg-alt);
-        display: flex;
-        flex-direction: column;
-      }
-      .download-card strong {
-        display: block;
-        margin-bottom: 4px;
-      }
-      .download-card .platform-sub {
-        font-size: 13px;
-        color: var(--text-muted);
-        margin-bottom: 12px;
-      }
-      .download-button {
-        display: inline-block;
-        background: var(--accent);
+      a { color: var(--green-dark); }
+      .wrap { max-width: 1040px; margin: 0 auto; padding: 0 20px; }
+      h1, h2, h3 { line-height: 1.35; margin: 0; }
+      h1, h2, h3, .lead { text-wrap: balance; }
+      h2 { font-size: clamp(22px, 4vw, 30px); text-align: center; margin-bottom: 8px; }
+      .lead { text-align: center; color: var(--ink-soft); margin: 0 auto 36px; max-width: 560px; }
+      section { padding: 64px 0; }
+
+      /* ヒーロー */
+      .hero {
+        background:
+          radial-gradient(circle at 12% 18%, rgb(255 255 255 / 25%) 0 90px, transparent 91px),
+          radial-gradient(circle at 88% 78%, rgb(255 255 255 / 18%) 0 130px, transparent 131px),
+          linear-gradient(160deg, #19dd6b 0%, var(--green) 55%, #05b04b 100%);
         color: #fff;
-        text-decoration: none;
-        padding: 12px 20px;
-        border-radius: 8px;
-        font-weight: 600;
-        text-align: center;
-        margin-top: auto;
+        padding: 56px 0 0;
+        overflow: hidden;
       }
-      .meta {
-        font-size: 13px;
-        color: var(--text-muted);
-        margin-top: 20px;
+      .hero .wrap { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 24px; align-items: center; }
+      .badge {
+        display: inline-block; background: rgb(255 255 255 / 22%); border-radius: 999px;
+        padding: 4px 14px; font-size: 13px; font-weight: 700; margin-bottom: 16px;
       }
-      h2 {
-        font-size: 18px;
-        margin-top: 40px;
+      .nowrap { white-space: nowrap; }
+      .hero h1 { font-size: clamp(26px, 5.2vw, 44px); text-shadow: 0 2px 0 rgb(0 0 0 / 8%); }
+      .hero p { font-size: 17px; margin: 16px 0 28px; max-width: 480px; }
+      .cta { display: flex; gap: 12px; flex-wrap: wrap; }
+      .btn {
+        display: inline-block; text-decoration: none; font-weight: 700; border-radius: 999px;
+        padding: 14px 28px; transition: transform 0.15s;
       }
-      ul {
-        padding-left: 20px;
+      .btn:hover { transform: translateY(-2px); }
+      .btn.primary { background: #fff; color: var(--green-dark); box-shadow: 0 4px 0 rgb(0 0 0 / 15%); }
+      .btn.ghost { color: #fff; border: 2px solid rgb(255 255 255 / 70%); }
+      .hero-note { font-size: 13px; opacity: 0.9; margin-top: 12px; }
+
+      /* チャット画面のイメージ */
+      .chat {
+        background: var(--sky); border-radius: 28px 28px 0 0; padding: 20px 16px 28px;
+        box-shadow: 0 -4px 30px rgb(0 0 0 / 12%); max-width: 360px; width: 100%; justify-self: center;
       }
-      code {
-        background: var(--bg-alt);
-        padding: 2px 6px;
-        border-radius: 4px;
-        font-size: 0.9em;
+      .chat-title { text-align: center; color: #fff; font-weight: 700; font-size: 14px; margin-bottom: 14px; }
+      .msg { display: flex; gap: 8px; margin-bottom: 12px; align-items: flex-end; }
+      .msg.me { justify-content: flex-end; }
+      .avatar { width: 34px; height: 34px; border-radius: 50%; background: #fff; flex: none; overflow: hidden; }
+      .bubble { background: #fff; color: var(--ink); border-radius: 18px; padding: 8px 14px; font-size: 14px; max-width: 220px; }
+      .msg.me .bubble { background: #8de08f; }
+      .msg svg.stamp { width: 130px; height: 130px; }
+
+      /* スタンプ */
+      svg.stamp text {
+        font-family: 'Hiragino Maru Gothic ProN', 'Yu Gothic UI', sans-serif; font-weight: 800; font-size: 30px;
+        fill: #fff; stroke: #3b3b3b; stroke-width: 7; stroke-linejoin: round; paint-order: stroke; text-anchor: middle;
       }
-      footer {
-        margin-top: 48px;
-        font-size: 13px;
-        color: var(--text-muted);
+
+      /* 使い方 */
+      .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; list-style: none; padding: 0; margin: 0; counter-reset: step; }
+      .steps li {
+        background: var(--card); border: 2px solid var(--line); border-radius: 24px; padding: 28px 22px 24px;
+        position: relative; counter-increment: step;
       }
-      a {
-        color: var(--accent);
+      .steps li::before {
+        content: counter(step); position: absolute; top: -18px; left: 22px; width: 36px; height: 36px; border-radius: 50%;
+        background: var(--green); color: #fff; font-weight: 800; display: grid; place-items: center; box-shadow: 0 3px 0 var(--green-dark);
+      }
+      .steps h3 { font-size: 18px; margin-bottom: 6px; }
+      .steps p { margin: 0; color: var(--ink-soft); font-size: 14px; }
+
+      /* スタンプ一覧 */
+      .sheet-bg { background: var(--green-soft); }
+      .sheet { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+      .sheet figure {
+        margin: 0; background: #fff; border-radius: 20px; padding: 8px; border: 2px solid transparent;
+        box-shadow: 0 3px 0 rgb(0 0 0 / 6%); transition: transform 0.15s;
+      }
+      .sheet figure:hover { transform: rotate(-2deg) scale(1.04); border-color: var(--green); }
+      .sheet svg { width: 100%; height: auto; display: block; }
+
+      /* 特長 */
+      .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 18px; }
+      .feature { background: var(--card); border: 2px solid var(--line); border-radius: 24px; padding: 24px; }
+      .feature .ico { font-size: 30px; display: block; margin-bottom: 6px; }
+      .feature h3 { font-size: 17px; margin-bottom: 4px; }
+      .feature p { margin: 0; font-size: 14px; color: var(--ink-soft); }
+
+      /* ダウンロード */
+      .download {
+        background: linear-gradient(160deg, #19dd6b, var(--green)); color: #fff; border-radius: 32px;
+        padding: 44px 28px; text-align: center; box-shadow: 0 8px 0 var(--green-dark);
+      }
+      .download h2 { color: #fff; }
+      .download p { margin: 4px 0 24px; }
+      .download .meta { font-size: 13px; opacity: 0.92; margin: 18px 0 0; }
+      .download a { color: #fff; }
+      .download .btn.primary { font-size: 18px; padding: 16px 36px; }
+
+      /* 注意・FAQ */
+      details { background: var(--card); border: 2px solid var(--line); border-radius: 16px; padding: 14px 18px; margin-bottom: 10px; }
+      summary { cursor: pointer; font-weight: 700; }
+      details p { margin: 8px 0 0; color: var(--ink-soft); font-size: 14px; }
+      code { background: #eef3ec; padding: 2px 6px; border-radius: 6px; font-size: 0.9em; }
+      footer { text-align: center; color: var(--ink-soft); font-size: 13px; padding: 32px 20px 48px; }
+
+      @media (max-width: 780px) {
+        .hero .wrap { grid-template-columns: 1fr; }
+        .chat { margin-top: 8px; }
+        .steps { grid-template-columns: 1fr; gap: 30px; }
+        .sheet { grid-template-columns: repeat(2, 1fr); }
+        section { padding: 48px 0; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        html { scroll-behavior: auto; }
+        .btn, .sheet figure { transition: none; }
       }
     </style>
   </head>
   <body>
-    <main>
-      <h1>stamp-maker</h1>
-      <p class="subtitle">LINEスタンプの制作を助けるデスクトップアプリ(macOS)。画像生成はローカルで行います。</p>
+    <!-- スタンプに使うネコのイラスト(自作)。表情ごとに目と口だけ変える -->
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+      <defs>
+        <g id="cat-body">
+          <path d="M118 52c4-22 8-34 14-40 12 6 20 18 22 36z" fill="#f5a14d" />
+          <path d="M82 52c-4-22-8-34-14-40-12 6-20 18-22 36z" fill="#f5a14d" />
+          <path d="M148 98c20 4 34-6 36-26 2-14-6-24-16-26-1 14-8 24-20 28z" fill="#f08a24" transform="translate(-8 40)" />
+          <ellipse cx="100" cy="132" rx="46" ry="42" fill="#f5a14d" />
+          <ellipse cx="100" cy="140" rx="27" ry="27" fill="#fde0bd" />
+          <ellipse cx="82" cy="168" rx="15" ry="9" fill="#fde0bd" />
+          <ellipse cx="118" cy="168" rx="15" ry="9" fill="#fde0bd" />
+          <ellipse cx="100" cy="78" rx="54" ry="46" fill="#f5a14d" />
+          <path d="M96 88l4 5 4-5z" fill="#e8708a" />
+          <path d="M46 84l-20-4M46 94l-20 4M154 84l20-4M154 94l20 4" stroke="#2c2c2c" stroke-width="3" stroke-linecap="round" />
+        </g>
+        <!-- にっこり -->
+        <symbol id="cat-smile" viewBox="0 0 200 200">
+          <use href="#cat-body" />
+          <ellipse cx="78" cy="76" rx="6.5" ry="8.5" fill="#2c2c2c" /><circle cx="80" cy="73" r="2.4" fill="#fff" />
+          <ellipse cx="122" cy="76" rx="6.5" ry="8.5" fill="#2c2c2c" /><circle cx="124" cy="73" r="2.4" fill="#fff" />
+          <path d="M88 98q6 8 12 0q6 8 12 0" fill="none" stroke="#2c2c2c" stroke-width="3" stroke-linecap="round" />
+        </symbol>
+        <!-- 大よろこび -->
+        <symbol id="cat-happy" viewBox="0 0 200 200">
+          <use href="#cat-body" />
+          <path d="M68 80q10-14 20 0M112 80q10-14 20 0" fill="none" stroke="#2c2c2c" stroke-width="4" stroke-linecap="round" />
+          <path d="M86 96q14 20 28 0z" fill="#c4455f" stroke="#2c2c2c" stroke-width="3" stroke-linejoin="round" />
+          <ellipse cx="62" cy="92" rx="8" ry="5" fill="#ff8fb1" opacity="0.7" />
+          <ellipse cx="138" cy="92" rx="8" ry="5" fill="#ff8fb1" opacity="0.7" />
+        </symbol>
+        <!-- しょんぼり -->
+        <symbol id="cat-sad" viewBox="0 0 200 200">
+          <use href="#cat-body" />
+          <ellipse cx="78" cy="78" rx="6.5" ry="8.5" fill="#2c2c2c" /><circle cx="80" cy="75" r="2.4" fill="#fff" />
+          <ellipse cx="122" cy="78" rx="6.5" ry="8.5" fill="#2c2c2c" /><circle cx="124" cy="75" r="2.4" fill="#fff" />
+          <path d="M64 68l18-7M136 68l-18-7" stroke="#2c2c2c" stroke-width="3.5" stroke-linecap="round" />
+          <path d="M90 104q10-9 20 0" fill="none" stroke="#2c2c2c" stroke-width="3" stroke-linecap="round" />
+          <path d="M72 88q-4 10 0 16q4-6 0-16z" fill="#7cc4ff" />
+        </symbol>
+        <!-- ねむい -->
+        <symbol id="cat-sleepy" viewBox="0 0 200 200">
+          <use href="#cat-body" />
+          <path d="M68 78q10 8 20 0M112 78q10 8 20 0" fill="none" stroke="#2c2c2c" stroke-width="4" stroke-linecap="round" />
+          <ellipse cx="100" cy="100" rx="5" ry="4" fill="#2c2c2c" />
+          <text x="150" y="40" font-size="22" font-weight="800" fill="#6f86c8" style="stroke: none; paint-order: normal">z</text>
+          <text x="162" y="26" font-size="16" font-weight="800" fill="#6f86c8" style="stroke: none; paint-order: normal">z</text>
+        </symbol>
+        <!-- ウインク -->
+        <symbol id="cat-wink" viewBox="0 0 200 200">
+          <use href="#cat-body" />
+          <ellipse cx="78" cy="76" rx="6.5" ry="8.5" fill="#2c2c2c" /><circle cx="80" cy="73" r="2.4" fill="#fff" />
+          <path d="M112 78q10-10 20 0" fill="none" stroke="#2c2c2c" stroke-width="4" stroke-linecap="round" />
+          <path d="M88 98q6 8 12 0q6 8 12 0" fill="none" stroke="#2c2c2c" stroke-width="3" stroke-linecap="round" />
+          <path d="M150 52l4 8 9 1-7 6 2 9-8-5-8 5 2-9-7-6 9-1z" fill="#ffd24a" stroke="#e0a800" stroke-width="1.5" />
+        </symbol>
+        <!-- おこ -->
+        <symbol id="cat-angry" viewBox="0 0 200 200">
+          <use href="#cat-body" />
+          <ellipse cx="78" cy="80" rx="6.5" ry="7.5" fill="#2c2c2c" />
+          <ellipse cx="122" cy="80" rx="6.5" ry="7.5" fill="#2c2c2c" />
+          <path d="M64 66l22 8M136 66l-22 8" stroke="#2c2c2c" stroke-width="4" stroke-linecap="round" />
+          <path d="M90 104q10-8 20 0" fill="none" stroke="#2c2c2c" stroke-width="3" stroke-linecap="round" />
+          <path d="M150 44l6 6-6 6M158 44l6 6-6 6" fill="none" stroke="#e8453c" stroke-width="3" stroke-linecap="round" />
+        </symbol>
+        <!-- びっくり -->
+        <symbol id="cat-wow" viewBox="0 0 200 200">
+          <use href="#cat-body" />
+          <circle cx="78" cy="76" r="10" fill="#fff" stroke="#2c2c2c" stroke-width="3" /><circle cx="78" cy="76" r="4" fill="#2c2c2c" />
+          <circle cx="122" cy="76" r="10" fill="#fff" stroke="#2c2c2c" stroke-width="3" /><circle cx="122" cy="76" r="4" fill="#2c2c2c" />
+          <ellipse cx="100" cy="102" rx="6" ry="8" fill="#c4455f" stroke="#2c2c2c" stroke-width="3" />
+          <path d="M150 40v14M150 60v3" stroke="#e8453c" stroke-width="5" stroke-linecap="round" />
+        </symbol>
+        <!-- ごめん -->
+        <symbol id="cat-sorry" viewBox="0 0 200 200">
+          <use href="#cat-body" />
+          <path d="M68 80q10-8 20 0M112 80q10-8 20 0" fill="none" stroke="#2c2c2c" stroke-width="4" stroke-linecap="round" />
+          <path d="M90 102q10-7 20 0" fill="none" stroke="#2c2c2c" stroke-width="3" stroke-linecap="round" />
+          <path d="M70 124q30-14 60 0" fill="none" stroke="#f08a24" stroke-width="12" stroke-linecap="round" />
+        </symbol>
+      </defs>
+    </svg>
 
-      <p><strong>最新版: v0.1.0</strong>(リリース後に更新)</p>
-      <div class="download-grid">
-        <div class="download-card">
-          <strong>macOS</strong>
-          <span class="platform-sub">Apple Silicon (arm64)</span>
-          <a
-            class="download-button"
-            href="https://github.com/7thCode/stamp-maker/releases/latest"
-          >
-            最新版をダウンロード
-          </a>
+    <header class="hero">
+      <div class="wrap">
+        <div>
+          <span class="badge">macOS アプリ ・ 無料 ・ オープンソース</span>
+          <h1><span class="nowrap">あなたのキャラで、</span><br /><span class="nowrap">LINEスタンプを作ろう。</span></h1>
+          <p>
+            参考画像を1枚入れるだけ。表情もポーズも違うスタンプを最大40個、あなたのMacの中だけで作れます。文字入れから書き出しまで、これ1本で。
+          </p>
+          <div class="cta">
+            <a class="btn primary" href="#download">ダウンロード</a>
+            <a class="btn ghost" href="#how">作り方を見る</a>
+          </div>
+          <p class="hero-note">Apple Silicon の Mac 用 ・ 画像は外部に送信されません</p>
+        </div>
+        <div class="chat" role="img" aria-label="トーク画面でスタンプを送り合うイメージ">
+          <div class="chat-title">ねこ友だち</div>
+          <div class="msg">
+            <div class="avatar">
+              <svg viewBox="0 0 200 200" width="34" height="34"><use href="#cat-smile" /></svg>
+            </div>
+            <div class="bubble">新しいスタンプできた?</div>
+          </div>
+          <div class="msg me">
+            <svg class="stamp" viewBox="0 0 200 200"><use href="#cat-happy" /><text x="100" y="192">できた!</text></svg>
+          </div>
+          <div class="msg">
+            <div class="avatar">
+              <svg viewBox="0 0 200 200" width="34" height="34"><use href="#cat-smile" /></svg>
+            </div>
+            <div class="bubble">かわいい!買う〜</div>
+          </div>
         </div>
       </div>
-      <p class="meta">
-        過去のリリース一覧は <a href="https://github.com/7thCode/stamp-maker/releases">Releases</a> から確認できます。
-      </p>
+    </header>
 
-      <h2>主な機能</h2>
-      <ul>
-        <li>参考画像から、表情・ポーズ違いのスタンプ画像をローカルで生成(FLUX.2 klein 4B / stable-diffusion.cpp)</li>
-        <li>文字の合成、LINE の仕様検証、PNG と ZIP の書き出し、申請前チェック</li>
-        <li>動作環境: macOS(Apple Silicon)。モデル(約8GB)は付属せず、README の手順で用意します</li>
-      </ul>
+    <section id="how">
+      <div class="wrap">
+        <h2>3ステップでスタンプセットが完成</h2>
+        <p class="lead">むずかしい操作はありません。画面の順番に進むだけです。</p>
+        <ol class="steps">
+          <li>
+            <h3>キャラを決める</h3>
+            <p>手持ちのイラストを入れるか、「こんな子」と書いてAIに参考画像を作らせます。</p>
+          </li>
+          <li>
+            <h3>表情とセリフを選ぶ</h3>
+            <p>「ありがとう」「おつかれ」など文言を並べて生成。気に入らない子は何度でも作り直せます。</p>
+          </li>
+          <li>
+            <h3>書き出して申請へ</h3>
+            <p>LINEの仕様に合っているか自動でチェック。PNGとZIPをまとめて書き出します。</p>
+          </li>
+        </ol>
+      </div>
+    </section>
 
-      <h2>ソースコード</h2>
-      <p>
-        <a href="https://github.com/7thCode/stamp-maker">github.com/7thCode/stamp-maker</a>
-      </p>
+    <section class="sheet-bg">
+      <div class="wrap">
+        <h2>こんなスタンプが並びます</h2>
+        <p class="lead">同じキャラで、表情もポーズもいろいろ。文字は後から直せるので、言葉選びも気軽に。<br />(イラストは見本用の自作キャラです)</p>
+        <div class="sheet">
+          <figure><svg class="stamp" viewBox="0 0 200 200" role="img" aria-label="にっこり笑うネコ「ありがとう」"><use href="#cat-smile" /><text x="100" y="192">ありがとう</text></svg></figure>
+          <figure><svg class="stamp" viewBox="0 0 200 200" role="img" aria-label="大よろこびのネコ「やったー!」"><use href="#cat-happy" /><text x="100" y="192">やったー!</text></svg></figure>
+          <figure><svg class="stamp" viewBox="0 0 200 200" role="img" aria-label="しょんぼりしたネコ「ごめんね」"><use href="#cat-sad" /><text x="100" y="192">ごめんね</text></svg></figure>
+          <figure><svg class="stamp" viewBox="0 0 200 200" role="img" aria-label="眠そうなネコ「おやすみ」"><use href="#cat-sleepy" /><text x="100" y="192">おやすみ</text></svg></figure>
+          <figure><svg class="stamp" viewBox="0 0 200 200" role="img" aria-label="ウインクするネコ「OK!」"><use href="#cat-wink" /><text x="100" y="192">OK!</text></svg></figure>
+          <figure><svg class="stamp" viewBox="0 0 200 200" role="img" aria-label="怒ったネコ「もう!」"><use href="#cat-angry" /><text x="100" y="192">もう!</text></svg></figure>
+          <figure><svg class="stamp" viewBox="0 0 200 200" role="img" aria-label="驚いたネコ「えっ!?」"><use href="#cat-wow" /><text x="100" y="192">えっ!?</text></svg></figure>
+          <figure><svg class="stamp" viewBox="0 0 200 200" role="img" aria-label="謝るネコ「すみません」"><use href="#cat-sorry" /><text x="100" y="192">すみません</text></svg></figure>
+        </div>
+      </div>
+    </section>
 
-      <footer>LINE 社とは無関係の非公式ツールです。</footer>
-    </main>
+    <section>
+      <div class="wrap">
+        <h2>stamp-maker の特長</h2>
+        <p class="lead">スタンプ作りでつまずきやすいところを、まとめて引き受けます。</p>
+        <div class="features">
+          <div class="feature">
+            <span class="ico" aria-hidden="true">🔒</span>
+            <h3>あなたのMacの中だけで完結</h3>
+            <p>画像生成はローカルのAIで実行。大切なキャラクターの絵を、外部サービスにアップロードしません。</p>
+          </div>
+          <div class="feature">
+            <span class="ico" aria-hidden="true">🎭</span>
+            <h3>表情・ポーズ違いを自動で</h3>
+            <p>参考画像のキャラを保ったまま、笑顔、泣き顔、手を振るポーズなどを作ります。</p>
+          </div>
+          <div class="feature">
+            <span class="ico" aria-hidden="true">✏️</span>
+            <h3>文字は後から自由に調整</h3>
+            <p>書体・大きさ・色・位置をスタンプごとに設定。文言を直しても、画像の再生成は不要です。</p>
+          </div>
+          <div class="feature">
+            <span class="ico" aria-hidden="true">✅</span>
+            <h3>LINEの仕様を自動チェック</h3>
+            <p>画像サイズ、容量、枚数、販売情報の文字数を検証。申請前の確認リストも付いています。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="download" style="padding-top: 0">
+      <div class="wrap">
+        <div class="download">
+          <h2>さっそく使ってみる</h2>
+          <p>最新版: v0.1.0 ・ macOS(Apple Silicon)</p>
+          <a class="btn primary" href="https://github.com/7thCode/stamp-maker/releases/latest">macOS 版をダウンロード</a>
+          <p class="meta">
+            画像生成のモデル(約8GB)は付属しません。<a href="https://github.com/7thCode/stamp-maker#インストール実環境へ">インストール手順</a>に沿って用意してください。<br />
+            過去の版は <a href="https://github.com/7thCode/stamp-maker/releases">Releases</a> から。
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section style="padding-top: 0">
+      <div class="wrap" style="max-width: 760px">
+        <h2 style="margin-bottom: 20px">よくある質問</h2>
+        <details>
+          <summary>どんなMacで動きますか?</summary>
+          <p>Apple Silicon(M1以降)のMacです。動作確認は M4 / メモリ24GB のみで、1枚の生成に約30秒、ピークのメモリは約10GBです。WindowsとLinuxでは動きません。</p>
+        </details>
+        <details>
+          <summary>LINEのスタンプとして、そのまま販売できますか?</summary>
+          <p>このアプリは制作と書き出しまでのお手伝いです。LINE Creators Market への登録と審査は、ご自身で行います。生成した画像の権利や、LINEの審査基準への適合も、ご自身での確認が必要です。</p>
+        </details>
+        <details>
+          <summary>参考画像はどんなものを使えますか?</summary>
+          <p>ご自身で描いた画像や、利用の許諾がある画像にしてください。既存のキャラクターや、他人の作品に似せたものは使わないでください。</p>
+        </details>
+        <details>
+          <summary>文章を英語にする機能は必要ですか?</summary>
+          <p>必須ではありません。日本語の表情やポーズを英訳する機能は、<a href="https://ollama.com">Ollama</a> を入れている場合だけ使えます。使わない場合は、英語で直接入力できます。</p>
+        </details>
+        <details>
+          <summary>無料ですか?</summary>
+          <p>はい。MITライセンスのオープンソースです。ソースコードは <a href="https://github.com/7thCode/stamp-maker">GitHub</a> で公開しています。</p>
+        </details>
+      </div>
+    </section>
+
+    <footer>
+      stamp-maker は LINE 社とは無関係の非公式ツールです。<br />
+      <a href="https://github.com/7thCode/stamp-maker">github.com/7thCode/stamp-maker</a>
+    </footer>
   </body>
 </html>
