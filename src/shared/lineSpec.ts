@@ -1,7 +1,7 @@
 // LINE Creators Market 通常静止画スタンプの規格値。
 // 公式ガイドラインの変更に追従できるよう、確認日とともに1か所へ集約する。
 export const LINE_SPEC = {
-  confirmedAt: '2026-11-07',
+  confirmedAt: '2026-11-08',
   source: 'https://creator.line.me/ja/guideline/sticker/',
   allowedStickerCounts: [8, 16, 24, 32, 40],
   sticker: { maxWidth: 370, maxHeight: 320 },

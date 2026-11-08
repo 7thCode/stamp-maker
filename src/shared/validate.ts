@@ -9,6 +9,8 @@ export function lineTextWeight(text: string): number {
 }
 
 const EMOJI_RE = /\p{Extended_Pictographic}/u
+// 審査基準 2.4: URLが表示されているものは不可
+const URL_RE = /https?:\/\/|www\./i
 
 export function validateSalesInfo(sales: SalesInfo): ValidationIssue[] {
   const issues: ValidationIssue[] = []
@@ -27,6 +29,9 @@ export function validateSalesInfo(sales: SalesInfo): ValidationIssue[] {
     if (lineTextWeight(value) > max) {
       issues.push({ level: 'error', target: 'sales', message: `${label}が${max}文字(全角2文字換算)を超えています` })
     }
+    if (URL_RE.test(value)) {
+      issues.push({ level: 'error', target: 'sales', message: `${label}にURLは使用できません` })
+    }
     if (EMOJI_RE.test(value)) {
       issues.push({ level: 'error', target: 'sales', message: `${label}に絵文字は使用できません` })
     }
@@ -44,6 +49,8 @@ export interface ImageInfo {
   hasAlpha: boolean
   dpi: number
   format: string
+  // 色空間(sharpの表記。RGBなら 'srgb')。不明なら省略
+  space?: string
 }
 
 export function validateImage(
@@ -55,6 +62,7 @@ export function validateImage(
   const err = (message: string) => issues.push({ level: 'error', target, message })
   if (info.format !== 'png') err('PNG形式ではありません')
   if (info.bytes > LINE_SPEC.maxImageBytes) err('容量が1MBを超えています')
+  if (info.space !== undefined && info.space !== 'srgb') err('カラーモードがRGBではありません')
   if (!info.hasAlpha) err('背景透過(アルファチャンネル)がありません')
   if (info.dpi < LINE_SPEC.minDpi) err(`解像度が${LINE_SPEC.minDpi}dpi未満です`)
   if (info.width % 2 !== 0 || info.height % 2 !== 0) err('縦横の寸法が偶数ではありません')

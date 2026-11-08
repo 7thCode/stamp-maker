@@ -5,6 +5,8 @@ import type { ImageInfo } from '../shared/validate'
 export type ImageKind = 'sticker' | 'main' | 'tab'
 
 const ALPHA_THRESHOLD = 16
+// メイン画像・タブ画像で、被写体と外枠の間に残す余白
+const FRAME_MARGIN_PX = 4
 
 function toEven(n: number): number {
   return n % 2 === 0 ? n : n - 1
@@ -26,8 +28,18 @@ export async function finalizeImage(input: Buffer, kind: ImageKind): Promise<Buf
     pipeline = pipeline.resize(tw, th, { fit: 'fill' })
   } else {
     const box = LINE_SPEC[kind]
-    pipeline = pipeline.resize(box.width, box.height, {
-      fit: 'contain',
+    // 透明な余白を詰めてから、枠に合わせる(小さな画像でも被写体を大きく見せる)
+    const bounds = await opaqueBounds(input)
+    if (bounds) {
+      pipeline = pipeline.extract({ left: bounds.left, top: bounds.top, width: bounds.right - bounds.left, height: bounds.bottom - bounds.top })
+    }
+    const inner = { width: box.width - FRAME_MARGIN_PX * 2, height: box.height - FRAME_MARGIN_PX * 2 }
+    const fitted = await pipeline
+      .resize(inner.width, inner.height, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
+      .png()
+      .toBuffer()
+    pipeline = sharp(fitted).extend({
+      top: FRAME_MARGIN_PX, bottom: FRAME_MARGIN_PX, left: FRAME_MARGIN_PX, right: FRAME_MARGIN_PX,
       background: { r: 0, g: 0, b: 0, alpha: 0 }
     })
   }
@@ -42,7 +54,8 @@ export async function inspectImage(buf: Buffer): Promise<ImageInfo> {
     bytes: buf.length,
     hasAlpha: meta.hasAlpha === true,
     dpi: meta.density ?? 0,
-    format: meta.format ?? 'unknown'
+    format: meta.format ?? 'unknown',
+    space: meta.space
   }
 }
 

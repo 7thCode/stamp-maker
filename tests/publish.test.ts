@@ -34,6 +34,38 @@ describe('申請前チェックリスト', () => {
     expect(newProject('id', 'n', 'now', () => 'x').publishChecks).toEqual({})
   })
 
+  it('全項目に分類・ラベル・ヒントがある', () => {
+    for (const item of PUBLISH_CHECKLIST) {
+      expect(item.group.trim()).not.toBe('')
+      expect(item.label.trim()).not.toBe('')
+      expect(item.hint.trim()).not.toBe('')
+    }
+  })
+
+  it('保存済みの確認状況を保つため、従来の項目IDが残っている', () => {
+    const ids = PUBLISH_CHECKLIST.map((i) => i.id)
+    for (const legacy of ['reference-rights', 'no-lookalike', 'content-ok', 'model-terms', 'ai-disclosure', 'visual-check', 'read-guidelines']) {
+      expect(ids).toContain(legacy)
+    }
+  })
+
+  it('同じ分類の項目は連続して並ぶ(画面の見出しが重複しない)', () => {
+    const seen: string[] = []
+    for (const item of PUBLISH_CHECKLIST) {
+      if (seen[seen.length - 1] !== item.group) {
+        expect(seen).not.toContain(item.group)
+        seen.push(item.group)
+      }
+    }
+  })
+
+  it('審査ガイドラインの主な基準を扱う項目がある', () => {
+    const ids = PUBLISH_CHECKLIST.map((i) => i.id)
+    for (const id of ['no-real-person', 'not-duplicate', 'no-personal-info', 'no-ads', 'readability', 'main-tab-match', 'text-check']) {
+      expect(ids).toContain(id)
+    }
+  })
+
   it('開く先は https の固定URL', () => {
     expect(CREATORS_MARKET_URL.startsWith('https://')).toBe(true)
   })
