@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PROJECT_NAME</title>
+    <title>stamp-maker</title>
     <style>
       :root {
         --bg: #ffffff;
@@ -117,58 +117,39 @@
   </head>
   <body>
     <main>
-      <h1>PROJECT_NAME</h1>
-      <p class="subtitle">PROJECT_DESCRIPTION</p>
+      <h1>stamp-maker</h1>
+      <p class="subtitle">LINEスタンプの制作を助けるデスクトップアプリ(macOS)。画像生成はローカルで行います。</p>
 
-      <p><strong>最新版: vX.Y.Z</strong></p>
+      <p><strong>最新版: v0.1.0</strong>(リリース後に更新)</p>
       <div class="download-grid">
         <div class="download-card">
           <strong>macOS</strong>
           <span class="platform-sub">Apple Silicon (arm64)</span>
           <a
             class="download-button"
-            href="https://github.com/OWNER/REPO/releases/download/vX.Y.Z/REPO-X.Y.Z.dmg"
+            href="https://github.com/7thCode/stamp-maker/releases/latest"
           >
-            .dmg をダウンロード
-          </a>
-        </div>
-        <div class="download-card">
-          <strong>Windows</strong>
-          <span class="platform-sub">64bit (x64)</span>
-          <a
-            class="download-button"
-            href="https://github.com/OWNER/REPO/releases/download/vX.Y.Z/REPO-X.Y.Z-setup.exe"
-          >
-            .exe をダウンロード
-          </a>
-        </div>
-        <div class="download-card">
-          <strong>Linux</strong>
-          <span class="platform-sub">AppImage / 64bit (x64)</span>
-          <a
-            class="download-button"
-            href="https://github.com/OWNER/REPO/releases/download/vX.Y.Z/REPO-X.Y.Z.AppImage"
-          >
-            .AppImage をダウンロード
+            最新版をダウンロード
           </a>
         </div>
       </div>
       <p class="meta">
-        過去のリリース一覧は <a href="https://github.com/OWNER/REPO/releases">Releases</a> から確認できます。
+        過去のリリース一覧は <a href="https://github.com/7thCode/stamp-maker/releases">Releases</a> から確認できます。
       </p>
 
       <h2>主な機能</h2>
       <ul>
-        <li>FEATURE_1</li>
-        <li>FEATURE_2</li>
+        <li>参考画像から、表情・ポーズ違いのスタンプ画像をローカルで生成(FLUX.2 klein 4B / stable-diffusion.cpp)</li>
+        <li>文字の合成、LINE の仕様検証、PNG と ZIP の書き出し、申請前チェック</li>
+        <li>動作環境: macOS(Apple Silicon)。モデル(約8GB)は付属せず、README の手順で用意します</li>
       </ul>
 
       <h2>ソースコード</h2>
       <p>
-        <a href="https://github.com/OWNER/REPO">github.com/OWNER/REPO</a>
+        <a href="https://github.com/7thCode/stamp-maker">github.com/7thCode/stamp-maker</a>
       </p>
 
-      <footer>FOOTER_TEXT</footer>
+      <footer>LINE 社とは無関係の非公式ツールです。</footer>
     </main>
   </body>
 </html>

@@ -1,0 +1,17 @@
+appId: local.stampmaker.app
+productName: StampMaker
+directories:
+  output: dist
+files:
+  - out/**
+  - package.json
+asarUnpack:
+  - "**/node_modules/sharp/**"
+  - "**/node_modules/@img/**"
+# CI・配布用の既定構成(モデルは同梱しない)。モデル込みは electron-builder.bundled.yml
+mac:
+  icon: resources/icon.icns
+  target:
+    - target: dmg
+      arch: arm64
+  identity: null

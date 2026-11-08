@@ -18,6 +18,10 @@ jobs:
   build:
     uses: 7thCode/actions-templates/.github/workflows/multiplatform-release.yml@main
     with:
+      # 画像生成が macOS(Metal)専用のため、macOS のみビルドする
+      os_matrix: '["macos-latest"]'
+      build_command: npm run typecheck && npm test && npm run build
+      artifact_globs: dist/*.dmg
       upload_to_release_tag: ${{ inputs.upload_to_release }}
     secrets:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
