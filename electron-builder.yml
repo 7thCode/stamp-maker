@@ -13,6 +13,7 @@ extraResources:
   - from: build/sdcpp
     to: sdcpp
 mac:
+  icon: resources/icon.icns
   target:
     - target: dir
       arch: arm64
