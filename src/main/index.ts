@@ -153,6 +153,9 @@ function registerIpc(): void {
   })
 }
 
+// 開発版・パッケージ版で保存先が分かれないよう、データの置き場所を固定する
+app.setPath('userData', join(app.getPath('appData'), 'StampMaker'))
+
 app.whenReady().then(() => {
   store = new ProjectStore(join(app.getPath('userData'), 'projects'))
   registerIpc()
