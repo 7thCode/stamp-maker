@@ -3,7 +3,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { BrowserWindow, app, dialog, ipcMain, shell } from 'electron'
 import type { ExportRequest, ExportResponse } from '../shared/api'
-import { adoptedStickers } from '../shared/project'
+import { adoptedStickers, findSlot, imageSlots, updateSlot } from '../shared/project'
 import { CREATORS_MARKET_URL } from '../shared/publish'
 import type { Project } from '../shared/types'
 import { buildExport } from './exporter'
@@ -28,10 +28,6 @@ function createWindow(): void {
   })
   if (process.env['ELECTRON_RENDERER_URL']) win.loadURL(process.env['ELECTRON_RENDERER_URL'])
   else win.loadFile(join(__dirname, '../renderer/index.html'))
-}
-
-function updateSticker(project: Project, stickerId: string, patch: Partial<Project['stickers'][number]>): Project {
-  return { ...project, stickers: project.stickers.map((s) => (s.id === stickerId ? { ...s, ...patch } : s)) }
 }
 
 // 削除前の確認。キャンセルなら false
@@ -86,7 +82,7 @@ function registerIpc(): void {
   // 成功時は都度保存し、失敗しても他の画像・採用済み画像には影響しない
   ipcMain.handle('sticker:generate', async (_e, id: string, stickerId: string) => {
     let project = await store.load(id)
-    const sticker = project.stickers.find((s) => s.id === stickerId)
+    const sticker = findSlot(project, stickerId)
     if (!sticker) throw new Error('スタンプが見つかりません')
     if (sticker.status === 'adopted' && sticker.imagePath) return project // 採用済みは上書きしない
     try {
@@ -101,9 +97,9 @@ function registerIpc(): void {
       })
       const rel = join('images', `${stickerId}-${randomUUID()}.png`)
       await store.writeImage(id, rel, await finalizeImage(raw, 'sticker'))
-      project = updateSticker(project, stickerId, { imagePath: rel, job: 'success', status: 'unchecked' })
+      project = updateSlot(project, stickerId, { imagePath: rel, job: 'success', status: 'unchecked' })
     } catch (err) {
-      project = updateSticker(project, stickerId, { job: 'failed' })
+      project = updateSlot(project, stickerId, { job: 'failed' })
       await store.save(project)
       throw err
     }
@@ -120,30 +116,29 @@ function registerIpc(): void {
     const rel = join('images', `${stickerId}-${randomUUID()}.png`)
     await store.writeImage(id, rel, await finalizeImage(raw, 'sticker'))
     const project = await store.load(id)
-    return store.save(updateSticker(project, stickerId, { imagePath: rel, job: 'success', status: 'unchecked' }))
+    return store.save(updateSlot(project, stickerId, { imagePath: rel, job: 'success', status: 'unchecked' }))
   })
 
   ipcMain.handle('sticker:removeBackground', async (_e, id: string, stickerId: string) => {
     const project = await store.load(id)
-    const sticker = project.stickers.find((s) => s.id === stickerId)
+    const sticker = findSlot(project, stickerId)
     if (!sticker?.imagePath) throw new Error('画像がありません')
     const out = await removeBackground(await store.readImage(id, sticker.imagePath))
     const rel = join('images', `${stickerId}-${randomUUID()}.png`)
     await store.writeImage(id, rel, out)
-    return store.save(updateSticker(project, stickerId, { imagePath: rel }))
+    return store.save(updateSlot(project, stickerId, { imagePath: rel }))
   })
 
   // 日本語の表情・ポーズを英訳して英語欄へ入れる(英語欄は後から手で直せる)
   ipcMain.handle('prompts:translate', async (_e, id: string) => {
     const project = await store.load(id)
-    const sources = project.stickers.flatMap((s) => [s.expression, s.pose])
+    const slots = imageSlots(project)
+    const sources = slots.flatMap((s) => [s.expression, s.pose])
     const translated = await translateAll(sources, (url, init) => fetch(url, init))
-    const stickers = project.stickers.map((s, i) => ({
-      ...s,
-      expressionEn: translated[i * 2],
-      poseEn: translated[i * 2 + 1]
-    }))
-    return store.save({ ...project, stickers })
+    // スタンプ・メイン画像・タブ画像の順に、英訳結果を戻す
+    const withEn = slots.map((s, i) => ({ ...s, expressionEn: translated[i * 2], poseEn: translated[i * 2 + 1] }))
+    const count = project.stickers.length
+    return store.save({ ...project, stickers: withEn.slice(0, count), mainImage: withEn[count], tabImage: withEn[count + 1] })
   })
 
   ipcMain.handle('text:translate', async (_e, text: string) => (await translateAll([text], (url, init) => fetch(url, init)))[0])

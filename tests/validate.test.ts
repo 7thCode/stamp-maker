@@ -62,3 +62,18 @@ describe('marginWarning', () => {
     expect(marginWarning('s1', { left: 12, top: 12, right: 350, bottom: 300 }, 370, 320)).toEqual([])
   })
 })
+
+describe('validateImage(カラーモード)', () => {
+  const base = { width: 240, height: 240, bytes: 1000, hasAlpha: true, dpi: 72, format: 'png' }
+  it('RGB(srgb)なら通る', () => {
+    expect(validateImage('main', { ...base, space: 'srgb' }, 'main')).toEqual([])
+  })
+  it('グレースケールやCMYKはエラーにする', () => {
+    for (const space of ['b-w', 'cmyk']) {
+      expect(validateImage('main', { ...base, space }, 'main').map((i) => i.message)).toContain('カラーモードがRGBではありません')
+    }
+  })
+  it('色空間が不明(未指定)のときは判定しない', () => {
+    expect(validateImage('main', base, 'main')).toEqual([])
+  })
+})

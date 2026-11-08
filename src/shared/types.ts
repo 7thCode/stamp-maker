@@ -53,8 +53,11 @@ export interface Project {
   character: CharacterSettings
   stickerCount: number
   stickers: Sticker[]
+  // LINEに登録するメイン画像(240×240)とトークルームタブ画像(96×74)の専用枠
+  mainImage: Sticker
+  tabImage: Sticker
   sales: SalesInfo
-  // メイン画像・タブ画像に使うスタンプのID
+  // 専用画像が採用されていないときに、メイン画像・タブ画像の元にするスタンプのID
   mainStickerId: string | null
   generator: string
   // 申請前チェックリストの確認状況(項目ID → 確認済み)

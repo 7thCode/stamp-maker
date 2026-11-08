@@ -61,3 +61,46 @@ describe('opaqueBounds', () => {
     expect(await opaqueBounds(opaque)).toEqual({ left: 0, top: 0, right: 10, bottom: 10 })
   })
 })
+
+describe('finalizeImage(メイン画像・タブ画像)', () => {
+  // 透明な余白の中央に、不透明な赤い四角がある画像
+  async function subjectInMargin(): Promise<Buffer> {
+    const subject = await solid(200, 200, { r: 255, g: 0, b: 0, alpha: 1 })
+    return sharp({ create: { width: 512, height: 512, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } })
+      .composite([{ input: subject, left: 156, top: 156 }]).png().toBuffer()
+  }
+
+  it('メイン画像は240x240になり、規格の検証を通る', async () => {
+    const out = await finalizeImage(await subjectInMargin(), 'main')
+    const info = await inspectImage(out)
+    expect([info.width, info.height]).toEqual([240, 240])
+    expect(validateImage('main', info, 'main')).toEqual([])
+  })
+  it('タブ画像は96x74になり、規格の検証を通る', async () => {
+    const out = await finalizeImage(await subjectInMargin(), 'tab')
+    const info = await inspectImage(out)
+    expect([info.width, info.height]).toEqual([96, 74])
+    expect(validateImage('tab', info, 'tab')).toEqual([])
+  })
+  it('透明な余白を詰めて、被写体を枠いっぱいに(外枠の余白は約4px)収める', async () => {
+    const out = await finalizeImage(await subjectInMargin(), 'main')
+    const b = await opaqueBounds(out)
+    expect(b).not.toBeNull()
+    expect(b?.left).toBeGreaterThanOrEqual(3)
+    expect(b?.left).toBeLessThanOrEqual(5)
+    expect(b?.right).toBeGreaterThanOrEqual(235)
+    expect(b?.top).toBeLessThanOrEqual(5)
+  })
+  it('縦横比の違う枠(タブ)では、被写体を歪めず中央に収める', async () => {
+    const b = await opaqueBounds(await finalizeImage(await subjectInMargin(), 'tab'))
+    expect(b).not.toBeNull()
+    const w = (b?.right ?? 0) - (b?.left ?? 0)
+    const h = (b?.bottom ?? 0) - (b?.top ?? 0)
+    expect(Math.abs(w - h)).toBeLessThanOrEqual(1)
+    expect(h).toBeGreaterThanOrEqual(64)
+  })
+  it('完全に透明な画像でも失敗しない', async () => {
+    const out = await finalizeImage(await solid(100, 100, { r: 0, g: 0, b: 0, alpha: 0 }), 'tab')
+    expect((await inspectImage(out)).width).toBe(96)
+  })
+})

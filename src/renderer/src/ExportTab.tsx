@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { adoptedStickers } from '../../shared/project'
+import { adoptedSlotImage, adoptedStickers } from '../../shared/project'
 import type { Project, ValidationIssue } from '../../shared/types'
 import { CANVAS_H, CANVAS_W, canvasToPng, composeSticker, loadImage } from './compose'
 
@@ -25,9 +25,13 @@ export function ExportTab({ project, onChange }: Props) {
     setBusy(true); setOutDir(null)
     try {
       const stickers = await Promise.all(adopted.map(async (s) => ({ id: s.id, png: await render(project, s.imagePath, s.text, s.textStyle) })))
-      // メイン/タブ画像は文字なしで作成(採用画像から)
-      const bare = await render(project, mainSticker.imagePath, '', mainSticker.textStyle)
-      const res = await window.stamp.exportSet({ projectId: project.id, stickers, main: bare, tab: bare })
+      // メイン/タブ画像は文字なし。専用の画像が採用済みならそれを、無ければ採用スタンプを元にする
+      const fallback = await render(project, mainSticker.imagePath, '', mainSticker.textStyle)
+      const own = async (slot: Project['mainImage']) => {
+        const rel = adoptedSlotImage(slot)
+        return rel ? render(project, rel, '', slot.textStyle) : fallback
+      }
+      const res = await window.stamp.exportSet({ projectId: project.id, stickers, main: await own(project.mainImage), tab: await own(project.tabImage) })
       setIssues(res.issues); setOutDir(res.outputDir)
     } catch (e) {
       setIssues([{ level: 'error', target: 'export', message: e instanceof Error ? e.message : String(e) }])
@@ -43,7 +47,7 @@ export function ExportTab({ project, onChange }: Props) {
     <div>
       <div className="row">
         <span>採用済み: {adopted.length}枚</span>
-        <label>メイン/タブ画像に使う採用スタンプ:
+        <label>メイン/タブ画像の元にする採用スタンプ(専用画像が未採用のとき):
           <select value={mainSticker?.id ?? ''} onChange={(e) => onChange((p) => ({ ...p, mainStickerId: e.target.value }))}>
             {adopted.map((s) => <option key={s.id} value={s.id}>{label(s.id)} {s.text}</option>)}
           </select>

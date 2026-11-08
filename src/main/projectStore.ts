@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import { copyFile, mkdir, readFile, readdir, rename, rm, writeFile } from 'node:fs/promises'
 import { basename, extname, join } from 'node:path'
-import { newProject } from '../shared/project'
+import { newProject, withProjectDefaults } from '../shared/project'
 import type { Project, ProjectSummary } from '../shared/types'
 
 export class ProjectStore {
@@ -51,7 +51,7 @@ export class ProjectStore {
   }
 
   async load(id: string): Promise<Project> {
-    return JSON.parse(await readFile(join(this.dir(id), 'project.json'), 'utf-8')) as Project
+    return withProjectDefaults(JSON.parse(await readFile(join(this.dir(id), 'project.json'), 'utf-8')) as Project)
   }
 
   // 一時ファイル経由で書き込み、途中終了でも既存データを壊さない
