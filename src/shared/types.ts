@@ -32,6 +32,8 @@ export interface Sticker {
 export interface CharacterSettings {
   name: string
   keepTraits: string
+  // 生成に使う英語版。空なら日本語をそのまま使う
+  keepTraitsEn: string
   notes: string
 }
 

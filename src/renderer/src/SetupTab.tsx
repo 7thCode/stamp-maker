@@ -17,11 +17,19 @@ export function SetupTab({ project, onChange, onReplace }: Props) {
   }, [project.id, project.referenceImages])
   useEffect(() => { window.stamp.listGenerators().then(setGenerators) }, [])
 
+  const [translating, setTranslating] = useState(false)
+  const [error, setError] = useState('')
+  const translateTraits = async () => {
+    setTranslating(true); setError('')
+    try { setChar('keepTraitsEn', await window.stamp.translateText(project.character.keepTraits)) }
+    catch (e) { setError(e instanceof Error ? e.message : String(e)) }
+    finally { setTranslating(false) }
+  }
   const importRefs = async () => {
     const next = await window.stamp.importReferences(project.id)
     if (next) onReplace(next)
   }
-  const setChar = (key: 'name' | 'keepTraits' | 'notes', value: string) =>
+  const setChar = (key: 'name' | 'keepTraits' | 'keepTraitsEn' | 'notes', value: string) =>
     onChange((p) => ({ ...p, character: { ...p.character, [key]: value } }))
 
   return (
@@ -35,6 +43,14 @@ export function SetupTab({ project, onChange, onReplace }: Props) {
       <h3>キャラクター設定</h3>
       <label className="field">名前<input type="text" value={project.character.name} onChange={(e) => setChar('name', e.target.value)} /></label>
       <label className="field">維持したい特徴(顔・配色・服装・画風)<textarea rows={3} value={project.character.keepTraits} onChange={(e) => setChar('keepTraits', e.target.value)} /></label>
+      <div className="row">
+        <button onClick={translateTraits} disabled={translating || !project.character.keepTraits.trim()}>
+          {translating ? '英訳中…' : '特徴を英訳(Ollama)'}
+        </button>
+        <span className="warn" style={{ color: "inherit" }}>生成には英語が使われます。必要なら下の英語欄を直接編集できます。</span>
+      </div>
+      {error && <p className="warn">{error}</p>}
+      <label className="field">維持したい特徴(英語・生成に使用)<textarea rows={3} value={project.character.keepTraitsEn ?? ''} onChange={(e) => setChar('keepTraitsEn', e.target.value)} /></label>
       <label className="field">メモ<textarea rows={2} value={project.character.notes} onChange={(e) => setChar('notes', e.target.value)} /></label>
       <h3>生成方式</h3>
       <select value={project.generator} onChange={(e) => onChange((p) => ({ ...p, generator: e.target.value }))}>

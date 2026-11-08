@@ -66,7 +66,8 @@ function registerIpc(): void {
       const refs = await Promise.all(project.referenceImages.map((r) => store.readImage(id, r)))
       const raw = await getGenerator(project.generator).generate({
         referenceImages: refs,
-        characterTraits: project.character.keepTraits,
+        // 英語欄が空なら入力そのまま(旧データや英語入力)
+        characterTraits: project.character.keepTraitsEn || project.character.keepTraits,
         // 英語欄が空なら入力そのまま(旧データや英語入力)
         expression: sticker.expressionEn || sticker.expression,
         pose: sticker.poseEn || sticker.pose

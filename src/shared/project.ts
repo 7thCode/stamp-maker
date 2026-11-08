@@ -41,7 +41,7 @@ export function newProject(id: string, name: string, now: string, makeId: () => 
     createdAt: now,
     updatedAt: now,
     referenceImages: [],
-    character: { name: '', keepTraits: '', notes: '' },
+    character: { name: '', keepTraits: '', keepTraitsEn: '', notes: '' },
     stickerCount: count,
     stickers: resizeStickers([], count, makeId),
     sales: { title: '', description: '', creatorName: '', copyright: '' },
