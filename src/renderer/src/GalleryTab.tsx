@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Project, Sticker, StickerStatus } from '../../shared/types'
 import { StickerCanvas } from './StickerCanvas'
 
@@ -8,10 +8,23 @@ interface Props {
   onReplace: (p: Project) => void
 }
 
+const ELAPSED_TICK_MS = 1000
+
+// 生成を始めてからの経過秒数(生成中だけ表示する)
+function Elapsed() {
+  const [sec, setSec] = useState(0)
+  useEffect(() => {
+    const started = Date.now()
+    const id = setInterval(() => setSec(Math.floor((Date.now() - started) / 1000)), ELAPSED_TICK_MS)
+    return () => clearInterval(id)
+  }, [])
+  return <>{sec}秒</>
+}
+
 const STATUS_LABEL: Record<StickerStatus, string> = { unchecked: '未確認', adopted: '採用', needsFix: '要修正' }
 
-function Card({ project, sticker, busy, onChange, onGenerate, onReplace }: {
-  project: Project; sticker: Sticker; busy: boolean
+function Card({ project, sticker, busy, generating, onChange, onGenerate, onReplace }: {
+  project: Project; sticker: Sticker; busy: boolean; generating: boolean
   onChange: Props['onChange']; onGenerate: (id: string) => void; onReplace: Props['onReplace']
 }) {
   const [overflow, setOverflow] = useState(false)
@@ -23,7 +36,15 @@ function Card({ project, sticker, busy, onChange, onGenerate, onReplace }: {
 
   return (
     <div className={`card ${sticker.status} ${dark ? 'dark' : ''}`}>
-      <StickerCanvas projectId={project.id} sticker={sticker} onOverflow={setOverflowStable} />
+      <div className="canvas-wrap">
+        <StickerCanvas projectId={project.id} sticker={sticker} onOverflow={setOverflowStable} />
+        {generating && (
+          <div className="generating" role="status">
+            <span className="spinner" aria-hidden="true" />
+            <span>生成中… <Elapsed /></span>
+          </div>
+        )}
+      </div>
       {overflow && <div className="warn">文字が枠からはみ出しています</div>}
       <div className="row">
         <select value={sticker.status} onChange={(e) => patch({ status: e.target.value as StickerStatus })}>
@@ -55,26 +76,30 @@ function Card({ project, sticker, busy, onChange, onGenerate, onReplace }: {
 export function GalleryTab({ project, onChange, onReplace }: Props) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const [generatingId, setGeneratingId] = useState<string | null>(null)
+  const [batch, setBatch] = useState<{ done: number; total: number } | null>(null)
   const cancelRef = useRef(false)
 
   const generateOne = useCallback(async (stickerId: string) => {
-    setBusy(true); setError('')
+    setBusy(true); setError(''); setGeneratingId(stickerId)
     try { onReplace(await window.stamp.generateSticker(project.id, stickerId)) }
     catch (e) { setError(e instanceof Error ? e.message : String(e)); onReplace(await window.stamp.loadProject(project.id)) }
-    finally { setBusy(false) }
+    finally { setBusy(false); setGeneratingId(null) }
   }, [project.id, onReplace])
 
   // 未生成・失敗分のみ順次生成。採用済みは対象外。キャンセル可。
   const generateAll = async () => {
     cancelRef.current = false
-    setBusy(true); setError('')
-    for (const s of project.stickers) {
+    const targets = project.stickers.filter((s) => s.status !== 'adopted' && !(s.imagePath && s.job !== 'failed'))
+    setBusy(true); setError(''); setBatch({ done: 0, total: targets.length })
+    for (const [i, s] of targets.entries()) {
       if (cancelRef.current) break
-      if (s.status === 'adopted' || (s.imagePath && s.job !== 'failed')) continue
+      setGeneratingId(s.id)
       try { onReplace(await window.stamp.generateSticker(project.id, s.id)) }
       catch (e) { setError(e instanceof Error ? e.message : String(e)); onReplace(await window.stamp.loadProject(project.id)) }
+      setBatch({ done: i + 1, total: targets.length })
     }
-    setBusy(false)
+    setBusy(false); setGeneratingId(null); setBatch(null)
   }
 
   const done = project.stickers.filter((s) => s.imagePath).length
@@ -86,9 +111,17 @@ export function GalleryTab({ project, onChange, onReplace }: Props) {
         <span>{done} / {project.stickers.length} 枚 画像あり</span>
         {error && <span className="warn">{error}</span>}
       </div>
+      {busy && (
+        <div className="progress-area" role="status">
+          <div className={batch ? 'progress' : 'progress indeterminate'}>
+            <div className="progress-bar" style={batch ? { width: `${(batch.done / batch.total) * 100}%` } : undefined} />
+          </div>
+          <span className="hint">{batch ? `生成中 ${Math.min(batch.done + 1, batch.total)} / ${batch.total} 枚目(1枚あたり30秒ほど)` : '生成中…(30秒ほどかかります)'}</span>
+        </div>
+      )}
       <div className="grid">
         {project.stickers.map((s) => (
-          <Card key={s.id} project={project} sticker={s} busy={busy} onChange={onChange} onGenerate={generateOne} onReplace={onReplace} />
+          <Card key={s.id} project={project} sticker={s} busy={busy} generating={generatingId === s.id} onChange={onChange} onGenerate={generateOne} onReplace={onReplace} />
         ))}
       </div>
     </div>
