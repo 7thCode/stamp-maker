@@ -14,4 +14,7 @@ mac:
   target:
     - target: dmg
       arch: arm64
-  identity: null
+  # Apple Silicon では署名が不整合だと「壊れている」と表示されるため、証明書なしの簡易署名(ad-hoc)で全体に署名する
+  identity: '-'
+  # 簡易署名では Hardened Runtime を使うと、ライブラリ検証で起動に失敗するため無効にする
+  hardenedRuntime: false
