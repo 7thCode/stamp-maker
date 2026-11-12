@@ -22,3 +22,6 @@ mac:
   identity: '-'
   # 簡易署名では Hardened Runtime を使うと、ライブラリ検証で起動に失敗するため無効にする
   hardenedRuntime: false
+# ダウンロードページから「最新版」へ直接リンクできるよう、ファイル名にバージョンを入れない
+dmg:
+  artifactName: StampMaker-${arch}.${ext}
