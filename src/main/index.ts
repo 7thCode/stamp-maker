@@ -3,6 +3,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { BrowserWindow, app, dialog, ipcMain, shell } from 'electron'
 import type { ExportRequest, ExportResponse } from '../shared/api'
+import { IMPORTABLE_IMAGE_EXTENSIONS, imageMimeType } from '../shared/imageTypes'
 import { adoptedStickers, findSlot, imageSlots, updateSlot } from '../shared/project'
 import { CREATORS_MARKET_URL } from '../shared/publish'
 import type { Project } from '../shared/types'
@@ -71,7 +72,7 @@ function registerIpc(): void {
   ipcMain.handle('project:importReferences', async (_e, id: string) => {
     const r = await dialog.showOpenDialog({
       properties: ['openFile', 'multiSelections'],
-      filters: [{ name: '画像', extensions: ['png', 'jpg', 'jpeg'] }]
+      filters: [{ name: '画像', extensions: [...IMPORTABLE_IMAGE_EXTENSIONS] }]
     })
     if (r.canceled) return null
     const rels = await Promise.all(r.filePaths.map((p) => store.importReference(id, p)))
@@ -81,8 +82,7 @@ function registerIpc(): void {
 
   ipcMain.handle('image:read', async (_e, id: string, rel: string) => {
     const buf = await store.readImage(id, rel)
-    const mime = rel.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg'
-    return `data:${mime};base64,${buf.toString('base64')}`
+    return `data:${imageMimeType(rel)};base64,${buf.toString('base64')}`
   })
 
   // 成功時は都度保存し、失敗しても他の画像・採用済み画像には影響しない
@@ -115,7 +115,7 @@ function registerIpc(): void {
   ipcMain.handle('sticker:importImage', async (_e, id: string, stickerId: string) => {
     const r = await dialog.showOpenDialog({
       properties: ['openFile'],
-      filters: [{ name: '画像', extensions: ['png', 'jpg', 'jpeg'] }]
+      filters: [{ name: '画像', extensions: [...IMPORTABLE_IMAGE_EXTENSIONS] }]
     })
     if (r.canceled) return null
     const raw = await readFile(r.filePaths[0])
