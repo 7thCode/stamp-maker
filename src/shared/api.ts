@@ -19,6 +19,8 @@ export interface SdSetupState {
   step?: string
   // 手順の補足(取得済みの容量など)
   detail?: string
+  // 手順の進み具合(0〜1)。分からないときは無し
+  progress?: number
   // 失敗の理由
   error?: string
 }

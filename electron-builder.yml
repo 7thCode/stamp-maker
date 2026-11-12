@@ -5,10 +5,10 @@ directories:
 files:
   - out/**
   - package.json
-# 画像生成の環境を、初回起動時に用意するためのスクリプト
+# 画像生成エンジン(sd-cli)を同梱する。CI では scripts/build-sdcli.sh が build/sdcpp/bin に作る。モデルは初回起動時にダウンロードする
 extraResources:
-  - from: scripts/setup-sdcpp.sh
-    to: scripts/setup-sdcpp.sh
+  - from: build/sdcpp/bin
+    to: sdcpp/bin
 asarUnpack:
   - "**/node_modules/sharp/**"
   - "**/node_modules/@img/**"
