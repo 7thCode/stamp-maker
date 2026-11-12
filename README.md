@@ -27,7 +27,7 @@ LINEスタンプ(静止画・最大40個)の制作を助けるデスクトップ
 git clone https://github.com/7thCode/stamp-maker.git
 cd stamp-maker
 npm ci
-scripts/setup-sdcpp.sh   # sd-cli のビルドとモデル(約8GB)の取得。git と cmake が必要
+scripts/setup-sdcpp.sh   # 開発用: sd-cli のビルドとモデル(約8.5GB)の取得。git と cmake が必要
 npm run dev
 ```
 
@@ -70,16 +70,15 @@ npm run dev
 
 ### B. dmg 版(GitHub Actions / Release の成果物)
 
-dmg にはモデルが入っていません。
+dmg には画像生成エンジン(`sd-cli`)は入っていますが、モデル(約8.5GB)は入っていません。
 
 1. dmg を開き、`StampMaker.app` を `/Applications` へドラッグする。警告が出たら A-4 と同じ手順で開く。
-2. アプリを起動する。初回は、画像生成の環境(`sd-cli` のビルドとモデル約8GB)を自動で用意する。画面上部に進み具合が出て、完了すると消える(数十分かかることがある)。
-   - 準備中も、プロジェクトの作成や文言の編集はできる。画像の生成は、準備が終わってからになる。
-   - ビルドに `git` と `cmake` が必要。無い場合は画面に入れ方が出るので、入れてから「再試行」を押す(`git` は `xcode-select --install`、`cmake` は `brew install cmake`)。
-   - 途中で失敗したときも、「再試行」で続きから行う(取得済みのモデルは取り直さない)。
-   - 手動で行う場合は、`scripts/setup-sdcpp.sh` を実行してもよい。
+2. アプリを起動する。初回は、モデルを自動でダウンロードする。画面上部に進み具合(%)が出て、完了すると消える(通信環境によって数十分かかることがある)。
+   - `git` や `cmake` は要らない。ディスクの空きは約10GB 必要。
+   - 準備中も、プロジェクトの作成や文言の編集はできる。画像の生成は、ダウンロードが終わってからになる。
+   - 途中で通信が切れたときは、「再試行」を押すと続きから再開する(取得済みの分は取り直さない)。
 
-   `~/Library/Application Support/stampMaker/sdcpp/` に `sd-cli` とモデルが置かれ、アプリが自動で使います。
+   モデルは `~/Library/Application Support/stampMaker/sdcpp/models/` に置かれ、アプリが自動で使います。
 
 ### 英訳機能(任意)
 
@@ -102,7 +101,7 @@ rm -rf /Applications/StampMaker.app
 | 症状 | 対処 |
 |---|---|
 | 「壊れているため開けません」と出る | `xattr -dr com.apple.quarantine /Applications/StampMaker.app` を実行する |
-| 「画像生成の準備ができていません」と出る(dmg 版) | 画面の理由に従い、`git`・`cmake` を入れて「再試行」を押す。ネットワークが原因なら、つなぎ直して「再試行」 |
+| 「画像生成の準備ができていません」と出る(dmg 版) | 画面に出ている理由を確認する。通信が原因なら、つなぎ直して「再試行」を押す(続きから再開する)。空き容量が原因なら、約10GB の空きを作ってから「再試行」 |
 | 生成が途中で失敗する | 他の重いアプリを閉じてメモリを空ける(ピーク約10GB) |
 | 英訳できない | Ollama が起動しているか、`gpt-oss:20b` を取得済みか確認する |
 
@@ -126,7 +125,7 @@ npm run build      # electron-vite のビルド
 npm run package    # モデル込みの StampMaker.app(約8.5GB)を dist/ に作る
 ```
 
-CI(GitHub Actions)は、モデルを含まない macOS 向けの dmg をビルドします。dmg から起動する場合も、モデルは `scripts/setup-sdcpp.sh` で別に用意してください。
+CI(GitHub Actions)は、`sd-cli` を含み、モデルを含まない macOS 向けの dmg をビルドします。モデルは、アプリが初回起動時にダウンロードします。
 
 ## データの保存先
 
