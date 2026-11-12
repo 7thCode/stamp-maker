@@ -1,66 +1,30 @@
-import { spawn } from 'node:child_process'
-import { accessSync, constants } from 'node:fs'
-import { readdir, stat } from 'node:fs/promises'
-import { delimiter, join } from 'node:path'
+import { existsSync } from 'node:fs'
+import { mkdir, statfs } from 'node:fs/promises'
+import { join } from 'node:path'
 import type { SdSetupState } from '../shared/api'
+import { downloadFile, type FetchFn, type ModelSpec } from './sdModels'
 
-// Finder から起動したアプリの PATH は最小限で、Homebrew の cmake が見えないため補う
-const EXTRA_PATHS = ['/opt/homebrew/bin', '/usr/local/bin']
-// sd-cli のビルドに必要な道具と、無いときの入れ方
-const REQUIRED_TOOLS: ReadonlyArray<{ name: string; install: string }> = [
-  { name: 'git', install: 'ターミナルで xcode-select --install を実行' },
-  { name: 'cmake', install: 'ターミナルで brew install cmake を実行(Homebrew が必要)' }
-]
-const STEP_RE = /^STEP (\d+)\/(\d+) (.+)$/
-const LOG_TAIL_LINES = 8
-const PROGRESS_POLL_MS = 1000
+// モデル3つの合計は約8.5GB。余裕を見て、これだけ空きが無ければ始めない
+export const REQUIRED_FREE_BYTES = 10 * 1024 ** 3
+const PROGRESS_INTERVAL_MS = 500
 const BYTES_PER_MB = 1024 * 1024
 
-export function setupEnv(base: NodeJS.ProcessEnv, extraPaths: readonly string[] = EXTRA_PATHS): NodeJS.ProcessEnv {
-  const current = (base['PATH'] ?? '').split(delimiter).filter(Boolean)
-  const merged = [...current, ...extraPaths.filter((p) => !current.includes(p))]
-  return { ...base, PATH: merged.join(delimiter) }
-}
-
-function hasExecutable(name: string, env: NodeJS.ProcessEnv): boolean {
-  return (env['PATH'] ?? '').split(delimiter).filter(Boolean).some((dir) => {
-    try { accessSync(join(dir, name), constants.X_OK); return true } catch { return false }
-  })
-}
-
-// 無い道具について、入れ方つきの説明を返す(空なら揃っている)
-export function missingToolHints(env: NodeJS.ProcessEnv): string[] {
-  return REQUIRED_TOOLS.filter((t) => !hasExecutable(t.name, env)).map((t) => `${t.name} が見つかりません。${t.install}`)
-}
-
-export function parseStep(line: string): { index: number; total: number; label: string } | null {
-  const m = STEP_RE.exec(line.trim())
-  return m ? { index: Number(m[1]), total: Number(m[2]), label: m[3] } : null
-}
-
-// 取得中の .part ファイルの合計をMBで返す(無ければ null)
-async function partialDownloadMb(modelsDir: string): Promise<number | null> {
-  try {
-    const parts = (await readdir(modelsDir)).filter((n) => n.endsWith('.part'))
-    if (parts.length === 0) return null
-    const sizes = await Promise.all(parts.map(async (n) => (await stat(join(modelsDir, n))).size))
-    return Math.round(sizes.reduce((a, b) => a + b, 0) / BYTES_PER_MB)
-  } catch {
-    return null
-  }
-}
-
 export interface SdSetupOptions {
-  script: string
-  root: string
-  env: NodeJS.ProcessEnv
+  models: readonly ModelSpec[]
+  modelDir: string
+  // 同梱の sd-cli の場所
+  binPath: string
   // 環境が揃っているか(sd-cli とモデルの有無)
   isReady: () => boolean
-  // PATH に補う場所(省略すると Homebrew の既定の場所)
-  extraPaths?: readonly string[]
+  fetchFn: FetchFn
+  requiredFreeBytes?: number
 }
 
-// sd-cli とモデルが無いときに、セットアップのスクリプトを実行して用意する
+export function formatMb(bytes: number): string {
+  return `${Math.round(bytes / BYTES_PER_MB).toLocaleString('en-US')} MB`
+}
+
+// 画像生成のモデルが無いときに、ダウンロードして用意する(sd-cli は配布物に同梱)
 export class SdSetup {
   private state: SdSetupState
   private running = false
@@ -85,74 +49,61 @@ export class SdSetup {
     for (const l of this.listeners) l(state)
   }
 
-  // 環境が無ければ実行する。実行中・用意済みなら何もしない。終了(成功・失敗)まで待つ
+  // 環境が無ければダウンロードする。実行中・用意済みなら何もしない。終了(成功・失敗)まで待つ
   async start(): Promise<void> {
-    if (this.running || this.options.isReady()) {
-      if (this.options.isReady()) this.set({ phase: 'ready' })
+    if (this.running) return
+    if (this.options.isReady()) {
+      this.set({ phase: 'ready' })
       return
     }
-    const env = setupEnv(this.options.env, this.options.extraPaths)
-    const hints = missingToolHints(env)
-    if (hints.length > 0) {
-      this.set({ phase: 'failed', error: `画像生成の準備に必要な道具が足りません。\n${hints.join('\n')}\n用意したあと「再試行」を押してください。` })
+    if (!existsSync(this.options.binPath)) {
+      this.set({ phase: 'failed', error: `画像生成エンジン(sd-cli)が見つかりません(${this.options.binPath})。開発版は scripts/setup-sdcpp.sh を実行してください。配布版なら、アプリを入れ直してください。` })
       return
     }
     this.running = true
-    this.set({ phase: 'running', step: '準備を始めています' })
     try {
-      await this.execute(env)
+      await this.download()
+    } catch (err) {
+      const reason = err instanceof Error ? err.message : String(err)
+      this.set({ phase: 'failed', error: `${reason}\n通信を確認して「再試行」を押してください。続きから再開します。` })
     } finally {
       this.running = false
     }
   }
 
-  private execute(env: NodeJS.ProcessEnv): Promise<void> {
-    const { script, root, isReady } = this.options
-    return new Promise((resolve) => {
-      const tail: string[] = []
-      let step = '準備を始めています'
-      let total = ''
-      const publish = (detail?: string): void => this.set({ phase: 'running', step: `${total}${step}`, detail })
-      const onLine = (line: string): void => {
-        const text = line.trim()
-        if (!text) return
-        const parsed = parseStep(text)
-        if (parsed) {
-          step = parsed.label
-          total = `(${parsed.index}/${parsed.total}) `
-          publish()
-          return
-        }
-        tail.push(text)
-        if (tail.length > LOG_TAIL_LINES) tail.shift()
-      }
-      const poll = setInterval(() => {
-        void partialDownloadMb(join(root, 'models')).then((mb) => {
-          if (this.state.phase === 'running') publish(mb === null ? undefined : `${mb} MB 取得済み`)
-        })
-      }, PROGRESS_POLL_MS)
-      const finish = (state: SdSetupState): void => {
-        clearInterval(poll)
-        this.set(state)
-        resolve()
-      }
+  private async hasFreeSpace(): Promise<boolean> {
+    const { modelDir, requiredFreeBytes = REQUIRED_FREE_BYTES } = this.options
+    await mkdir(modelDir, { recursive: true })
+    const fs = await statfs(modelDir)
+    return fs.bavail * fs.bsize >= requiredFreeBytes
+  }
 
-      const child = spawn('/bin/bash', [script], { env: { ...env, STAMP_SD_ROOT: root } })
-      let buffered = ''
-      const feed = (chunk: Buffer): void => {
-        const parts = (buffered + chunk.toString()).split(/[\r\n]+/)
-        buffered = parts.pop() ?? ''
-        parts.forEach(onLine)
-      }
-      child.stdout.on('data', feed)
-      child.stderr.on('data', feed)
-      child.on('error', (err) => finish({ phase: 'failed', error: `セットアップを開始できませんでした: ${err.message}` }))
-      child.on('close', (code) => {
-        onLine(buffered)
-        if (code === 0 && isReady()) return finish({ phase: 'ready' })
-        const reason = code === 0 ? '必要なファイルが揃いませんでした' : `終了コード ${code}`
-        finish({ phase: 'failed', error: `セットアップに失敗しました(${reason})。\n${tail.join('\n')}` })
+  private async download(): Promise<void> {
+    const { models, modelDir, isReady, fetchFn } = this.options
+    this.set({ phase: 'running', step: '準備を始めています' })
+    if (!(await this.hasFreeSpace())) {
+      this.set({ phase: 'failed', error: `ディスクの空きが足りません。モデルの取得に約${Math.round((this.options.requiredFreeBytes ?? REQUIRED_FREE_BYTES) / 1024 ** 3)}GB 必要です。空きを作って「再試行」を押してください。` })
+      return
+    }
+    const pending = models.filter((m) => !existsSync(join(modelDir, m.file)))
+    for (const [i, spec] of pending.entries()) {
+      const step = `(${i + 1}/${pending.length}) ${spec.label}を取得しています`
+      this.set({ phase: 'running', step })
+      let last = 0
+      await downloadFile(spec.url, join(modelDir, spec.file), fetchFn, (done, total) => {
+        const now = Date.now()
+        if (now - last < PROGRESS_INTERVAL_MS) return
+        last = now
+        if (this.state.phase !== 'running') return
+        this.set(total
+          ? { phase: 'running', step, detail: `${formatMb(done)} / ${formatMb(total)}`, progress: done / total }
+          : { phase: 'running', step, detail: `${formatMb(done)} 取得済み` })
       })
-    })
+    }
+    if (!isReady()) {
+      this.set({ phase: 'failed', error: '必要なファイルが揃いませんでした。' })
+      return
+    }
+    this.set({ phase: 'ready' })
   }
 }
