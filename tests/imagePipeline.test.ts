@@ -1,6 +1,6 @@
 import sharp from 'sharp'
 import { describe, expect, it } from 'vitest'
-import { finalizeImage, inspectImage, opaqueBounds, removeBackground } from '../src/main/imagePipeline'
+import { REFERENCE_MAX_EDGE, finalizeImage, inspectImage, normalizeReference, opaqueBounds, removeBackground } from '../src/main/imagePipeline'
 import { validateImage } from '../src/shared/validate'
 
 async function solid(w: number, h: number, color: { r: number; g: number; b: number; alpha: number }) {
@@ -102,5 +102,49 @@ describe('finalizeImage(メイン画像・タブ画像)', () => {
   it('完全に透明な画像でも失敗しない', async () => {
     const out = await finalizeImage(await solid(100, 100, { r: 0, g: 0, b: 0, alpha: 0 }), 'tab')
     expect((await inspectImage(out)).width).toBe(96)
+  })
+})
+
+describe('normalizeReference', () => {
+  const red = { r: 200, g: 30, b: 30, alpha: 1 }
+  const raw = (w: number, h: number) => sharp({ create: { width: w, height: h, channels: 3, background: red } })
+
+  // sd-cli が読めない形式(WebP・TIFF)や、読めても扱いにくい形式を、普通のPNGにする
+  it.each([
+    ['WebP', () => raw(64, 48).webp().toBuffer()],
+    ['TIFF', () => raw(64, 48).tiff().toBuffer()],
+    ['JPEG', () => raw(64, 48).jpeg().toBuffer()],
+    ['GIF', () => raw(64, 48).gif().toBuffer()],
+    ['16bit PNG', () => raw(64, 48).toColourspace('rgb16').png().toBuffer()],
+    ['CMYK JPEG', () => raw(64, 48).toColourspace('cmyk').jpeg().toBuffer()]
+  ])('%s を8bit・sRGBのPNGにする', async (_name, make) => {
+    const out = await normalizeReference(await make())
+    const meta = await sharp(out).metadata()
+    expect(meta.format).toBe('png')
+    expect(meta.depth).toBe('uchar')
+    expect(meta.space).toBe('srgb')
+    expect([meta.width, meta.height]).toEqual([64, 48])
+  })
+
+  it('長辺を上限までに縮め、小さい画像は拡大しない', async () => {
+    const big = await sharp(await normalizeReference(await raw(3000, 1500).png().toBuffer())).metadata()
+    expect([big.width, big.height]).toEqual([REFERENCE_MAX_EDGE, REFERENCE_MAX_EDGE / 2])
+    const small = await sharp(await normalizeReference(await raw(100, 80).png().toBuffer())).metadata()
+    expect([small.width, small.height]).toEqual([100, 80])
+  })
+
+  it('EXIFの向きを反映する(縦横が入れ替わる)', async () => {
+    const rotated = await raw(80, 40).jpeg().withMetadata({ orientation: 6 }).toBuffer()
+    const meta = await sharp(await normalizeReference(rotated)).metadata()
+    expect([meta.width, meta.height]).toEqual([40, 80])
+  })
+
+  it('透過は保つ', async () => {
+    const out = await normalizeReference(await solid(32, 32, { r: 0, g: 0, b: 0, alpha: 0.5 }))
+    expect((await sharp(out).metadata()).hasAlpha).toBe(true)
+  })
+
+  it('画像でないデータはエラーにする', async () => {
+    await expect(normalizeReference(Buffer.from('not an image'))).rejects.toThrow()
   })
 })

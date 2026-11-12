@@ -4,6 +4,20 @@ import type { ImageInfo } from '../shared/validate'
 
 export type ImageKind = 'sticker' | 'main' | 'tab'
 
+// 参考画像の長辺の上限。生成は512pxなので、これ以上は不要で、大きすぎると重くなる
+export const REFERENCE_MAX_EDGE = 1024
+
+// 参考画像を、sd-cli が確実に読める普通のPNG(8bit・sRGB)にする。
+// 拡張子と中身が違う画像(中身がWebPやTIFFなど)や、向き情報つき・CMYK・16bit の画像でも読めるようにする。
+export async function normalizeReference(input: Buffer): Promise<Buffer> {
+  return sharp(input)
+    .rotate()
+    .resize(REFERENCE_MAX_EDGE, REFERENCE_MAX_EDGE, { fit: 'inside', withoutEnlargement: true })
+    .toColourspace('srgb')
+    .png()
+    .toBuffer()
+}
+
 const ALPHA_THRESHOLD = 16
 // メイン画像・タブ画像で、被写体と外枠の間に残す余白
 const FRAME_MARGIN_PX = 4

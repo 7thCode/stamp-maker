@@ -82,10 +82,26 @@ export function buildSdArgs(req: SdRequest): string[] {
   ]
 }
 
+const ERROR_TAIL_LINES = 5
+
+// sd-cli の出力から、原因の行だけを取り出す。[E] の行があればそれ、無ければ末尾の数行
+export function summarizeSdError(output: string): string {
+  const lines = output.split(/\r?\n/).map((l) => l.trim()).filter(Boolean)
+  const errors = [...new Set(lines.filter((l) => l.startsWith('[E]')).map((l) => l.replace(/\s*---\s*\S+:\d+\s*$/, '')))]
+  return (errors.length > 0 ? errors : lines.slice(-ERROR_TAIL_LINES)).join('\n')
+}
+
 // sd-cliで1枚生成する。環境が無い場合は利用者向けのエラーにする。
 export async function runSd(req: SdRequest): Promise<void> {
   if (missingSdFiles().length > 0) {
     throw new Error(`画像生成の環境がまだ用意できていません(${SD_MODEL_DIR})。画面上部に出ている準備が終わってから、もう一度お試しください。失敗している場合は「再試行」を押してください`)
   }
-  await run(SD_BIN, buildSdArgs(req), { timeout: TIMEOUT_MS, maxBuffer: MAX_BUFFER })
+  try {
+    await run(SD_BIN, buildSdArgs(req), { timeout: TIMEOUT_MS, maxBuffer: MAX_BUFFER })
+  } catch (err) {
+    // 例外の文面には、コマンドと大量のログが入る。原因の行だけを示す
+    const { stdout = '', stderr = '' } = err as { stdout?: string; stderr?: string }
+    const reason = summarizeSdError(`${stdout}\n${stderr}`) || (err instanceof Error ? err.message.split('\n')[0] : String(err))
+    throw new Error(`画像の生成に失敗しました。\n${reason}`)
+  }
 }
