@@ -105,6 +105,15 @@ describe('finalizeImage(メイン画像・タブ画像)', () => {
   })
 })
 
+describe('finalizeImage(WebP)', () => {
+  it('WebP のスタンプ画像を取り込み、LINE の規格に合うPNGにする', async () => {
+    const webp = await sharp({ create: { width: 800, height: 700, channels: 4, background: { r: 10, g: 120, b: 200, alpha: 1 } } }).webp().toBuffer()
+    const out = await finalizeImage(webp, 'sticker')
+    expect((await sharp(out).metadata()).format).toBe('png')
+    expect(validateImage('s', await inspectImage(out), 'sticker')).toEqual([])
+  })
+})
+
 describe('normalizeReference', () => {
   const red = { r: 200, g: 30, b: 30, alpha: 1 }
   const raw = (w: number, h: number) => sharp({ create: { width: w, height: h, channels: 3, background: red } })

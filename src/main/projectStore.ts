@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import { copyFile, mkdir, readFile, readdir, rename, rm, writeFile } from 'node:fs/promises'
-import { basename, extname, join } from 'node:path'
+import { basename, join } from 'node:path'
+import { IMPORTABLE_IMAGE_LABEL, isImportableImage } from '../shared/imageTypes'
 import { newProject, withProjectDefaults } from '../shared/project'
 import type { Project, ProjectSummary } from '../shared/types'
 
@@ -66,8 +67,7 @@ export class ProjectStore {
 
   // 原本は変更せず、プロジェクト内へコピーする。戻り値は相対パス
   async importReference(id: string, srcPath: string): Promise<string> {
-    const ext = extname(srcPath).toLowerCase()
-    if (!['.png', '.jpg', '.jpeg'].includes(ext)) throw new Error('PNG・JPEGのみ取り込めます')
+    if (!isImportableImage(srcPath)) throw new Error(`${IMPORTABLE_IMAGE_LABEL}のみ取り込めます`)
     const rel = join('refs', `${randomUUID()}-${basename(srcPath)}`)
     await copyFile(srcPath, join(this.dir(id), rel))
     return rel

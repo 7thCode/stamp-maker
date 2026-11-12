@@ -39,7 +39,7 @@ export function SetupTab({ project, onChange, onReplace }: Props) {
 
   return (
     <div>
-      <h3>参考画像(PNG・JPEG)</h3>
+      <h3>参考画像(PNG・JPEG・WebP)</h3>
       <div className="row refs">
         {project.referenceImages.map((rel, i) => thumbs[rel] && (
           <span key={rel} className="ref">
