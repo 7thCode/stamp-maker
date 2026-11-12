@@ -51,9 +51,10 @@ npm run dev
 `sd-cli` とモデルが入っているため、追加の準備は不要です(約8.5GB)。
 
 1. 開発用のMacで `npm run package` を実行し、`dist/mac-arm64/StampMaker.app` を作る。
-2. 起動中なら終了してから、`/Applications` へコピーする。サイズが大きいので `ditto` を使う。
+2. 起動中なら終了してから、`/Applications` へコピーする。サイズが大きいので `ditto` を使う。古い版が入っているときは、先に消す(重ねてコピーすると、古い版にだけあるファイルが残り、署名が壊れて「壊れているため開けません」と出ることがある)。
 
    ```bash
+   rm -rf /Applications/StampMaker.app
    ditto dist/mac-arm64/StampMaker.app /Applications/StampMaker.app
    ```
 
@@ -66,7 +67,7 @@ npm run dev
 4. 初回は、未署名のため Gatekeeper の警告が出る。Finder で右クリックして「開く」を選ぶ(警告が出ない場合は不要)。
 5. 起動して、プロジェクトを作成できれば完了。
 
-同じ場所へ上書きコピーすれば更新できます。プロジェクトは別の場所にあるため、消えません。
+更新するときも、古いアプリを消してから同じ手順でコピーします。プロジェクトは別の場所にあるため、消えません。
 
 ### B. dmg 版(GitHub Actions / Release の成果物)
 
