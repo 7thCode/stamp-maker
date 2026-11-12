@@ -5,6 +5,10 @@ directories:
 files:
   - out/**
   - package.json
+# 画像生成の環境を、初回起動時に用意するためのスクリプト
+extraResources:
+  - from: scripts/setup-sdcpp.sh
+    to: scripts/setup-sdcpp.sh
 asarUnpack:
   - "**/node_modules/sharp/**"
   - "**/node_modules/@img/**"

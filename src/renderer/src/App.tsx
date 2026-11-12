@@ -4,6 +4,7 @@ import { ExportTab } from './ExportTab'
 import { GalleryTab } from './GalleryTab'
 import { PlanTab } from './PlanTab'
 import { SalesTab } from './SalesTab'
+import { SdSetupBanner } from './SdSetupBanner'
 import { PublishTab } from './PublishTab'
 import { SetupTab } from './SetupTab'
 
@@ -65,7 +66,7 @@ export function App() {
   const open = async (id: string) => { setProject(await window.stamp.loadProject(id)); setTab('setup') }
   const close = async () => { await flush(); latest.current = null; setProject(null) }
 
-  if (!project) return <div className="app"><header><h1>スタンプメーカー</h1></header><ProjectList onOpen={open} /></div>
+  if (!project) return <div className="app"><header><h1>スタンプメーカー</h1></header><SdSetupBanner /><ProjectList onOpen={open} /></div>
   return (
     <div className="app">
       <header>
@@ -73,6 +74,7 @@ export function App() {
         <nav className="tabs">{TABS.map(([t, l]) => <button key={t} className={t === tab ? 'tab active' : 'tab'} onClick={() => setTab(t)}>{l}</button>)}</nav>
         <button className="text" onClick={close}>一覧へ</button>
       </header>
+      <SdSetupBanner />
       <main>
         {tab === 'setup' && <SetupTab project={project} onChange={onChange} onReplace={onReplace} />}
         {tab === 'plan' && <PlanTab project={project} onChange={onChange} onReplace={onReplace} />}
