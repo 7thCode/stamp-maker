@@ -3,7 +3,7 @@ import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { buildKleinPrompt } from './fluxPrompt'
-import { removeBackground } from './imagePipeline'
+import { normalizeReference, removeBackground } from './imagePipeline'
 import { runSd } from './sdRunner'
 
 const SEED_RANGE = 1_000_000
@@ -54,7 +54,8 @@ const kleinLocal: ImageGenerator = {
       const refPaths = await Promise.all(
         req.referenceImages.map(async (buf, i) => {
           const p = join(dir, `ref${i}-${randomUUID()}.png`)
-          await writeFile(p, buf)
+          // 中身がPNGとは限らない(WebPなどは sd-cli が読めない)ため、普通のPNGにして渡す
+          await writeFile(p, await normalizeReference(buf))
           return p
         })
       )
