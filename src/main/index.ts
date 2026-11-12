@@ -12,9 +12,12 @@ import { getGenerator, listGenerators, pickRandomReference } from './generators'
 import { finalizeImage, removeBackground } from './imagePipeline'
 import { ProjectStore } from './projectStore'
 import { generateReferenceCandidate } from './referenceGen'
+import { SdSetup } from './sdSetup'
+import { SD_ROOT, missingSdFiles } from './sdRunner'
 import { translateAll } from './translator'
 
 let store: ProjectStore
+let sdSetup: SdSetup
 
 function createWindow(): void {
   const win = new BrowserWindow({
@@ -40,7 +43,16 @@ async function confirmDelete(message: string, detail: string): Promise<boolean> 
   return r.response === 0
 }
 
+// 画像生成の環境を用意するスクリプトの場所(パッケージ版は同梱、開発時はリポジトリ内)
+function setupScriptPath(): string {
+  return app.isPackaged
+    ? join(process.resourcesPath, 'scripts/setup-sdcpp.sh')
+    : join(app.getAppPath(), 'scripts/setup-sdcpp.sh')
+}
+
 function registerIpc(): void {
+  ipcMain.handle('sdSetup:get', () => sdSetup.getState())
+  ipcMain.handle('sdSetup:retry', () => sdSetup.start())
   ipcMain.handle('project:list', () => store.list())
   ipcMain.handle('project:create', (_e, name: string) => store.create(name))
   ipcMain.handle('project:load', (_e, id: string) => store.load(id))
@@ -179,8 +191,14 @@ app.setPath('userData', join(app.getPath('appData'), 'StampMaker'))
 
 app.whenReady().then(() => {
   store = new ProjectStore(join(app.getPath('userData'), 'projects'))
+  sdSetup = new SdSetup({ script: setupScriptPath(), root: SD_ROOT, env: process.env, isReady: () => missingSdFiles().length === 0 })
+  sdSetup.subscribe((state) => {
+    for (const win of BrowserWindow.getAllWindows()) win.webContents.send('sdSetup:state', state)
+  })
   registerIpc()
   createWindow()
+  // 初回起動などで sd-cli・モデルが無ければ、自動で用意する
+  void sdSetup.start()
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })

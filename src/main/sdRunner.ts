@@ -67,7 +67,7 @@ export function buildSdArgs(req: SdRequest): string[] {
 // sd-cliで1枚生成する。環境が無い場合は利用者向けのエラーにする。
 export async function runSd(req: SdRequest): Promise<void> {
   if (missingSdFiles().length > 0) {
-    throw new Error(`画像生成の環境が見つかりません(${SD_ROOT})。scripts/setup-sdcpp.sh でセットアップしてください`)
+    throw new Error(`画像生成の環境がまだ用意できていません(${SD_ROOT})。画面上部に出ている準備が終わってから、もう一度お試しください。失敗している場合は「再試行」を押してください`)
   }
   await run(SD_BIN, buildSdArgs(req), { timeout: TIMEOUT_MS, maxBuffer: MAX_BUFFER })
 }

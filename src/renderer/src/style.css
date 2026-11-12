@@ -182,3 +182,11 @@ label.slider output { text-align: right; font-variant-numeric: tabular-nums; }
 
 .card-title { font-weight: 500; font-size: 13px; color: var(--md-on-surface-variant); margin: 2px 4px 6px; }
 .check-group { font-size: 12px; font-weight: 500; color: var(--md-primary); margin-bottom: 6px; }
+
+/* 画像生成の環境の準備 */
+.setup-banner { padding: 12px 24px; background: var(--md-primary-container); color: var(--md-on-primary-container); border-bottom: 1px solid var(--md-outline-variant); }
+.setup-banner.failed { background: color-mix(in srgb, var(--md-error) 14%, var(--md-surface)); color: var(--md-on-surface); }
+.setup-banner .hint { color: inherit; opacity: 0.8; }
+.setup-banner .progress { background: color-mix(in srgb, var(--md-primary) 25%, transparent); margin: 8px 0 4px; }
+.setup-title { font-weight: 500; }
+.setup-detail { white-space: pre-wrap; margin: 4px 0 8px; }

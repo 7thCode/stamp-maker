@@ -73,15 +73,13 @@ npm run dev
 dmg にはモデルが入っていません。
 
 1. dmg を開き、`StampMaker.app` を `/Applications` へドラッグする。警告が出たら A-4 と同じ手順で開く。
-2. モデルを用意する。`git` と `cmake` が必要。
+2. アプリを起動する。初回は、画像生成の環境(`sd-cli` のビルドとモデル約8GB)を自動で用意する。画面上部に進み具合が出て、完了すると消える(数十分かかることがある)。
+   - 準備中も、プロジェクトの作成や文言の編集はできる。画像の生成は、準備が終わってからになる。
+   - ビルドに `git` と `cmake` が必要。無い場合は画面に入れ方が出るので、入れてから「再試行」を押す(`git` は `xcode-select --install`、`cmake` は `brew install cmake`)。
+   - 途中で失敗したときも、「再試行」で続きから行う(取得済みのモデルは取り直さない)。
+   - 手動で行う場合は、`scripts/setup-sdcpp.sh` を実行してもよい。
 
-   ```bash
-   git clone https://github.com/7thCode/stamp-maker.git
-   cd stamp-maker
-   scripts/setup-sdcpp.sh
-   ```
-
-   `~/Library/Application Support/stampMaker/sdcpp/` に `sd-cli` とモデル(約8GB)が置かれ、アプリが自動で使います。
+   `~/Library/Application Support/stampMaker/sdcpp/` に `sd-cli` とモデルが置かれ、アプリが自動で使います。
 
 ### 英訳機能(任意)
 
@@ -104,7 +102,7 @@ rm -rf /Applications/StampMaker.app
 | 症状 | 対処 |
 |---|---|
 | 「壊れているため開けません」と出る | `xattr -dr com.apple.quarantine /Applications/StampMaker.app` を実行する |
-| 生成時にモデルが見つからないと出る(dmg 版) | `scripts/setup-sdcpp.sh` を実行する |
+| 「画像生成の準備ができていません」と出る(dmg 版) | 画面の理由に従い、`git`・`cmake` を入れて「再試行」を押す。ネットワークが原因なら、つなぎ直して「再試行」 |
 | 生成が途中で失敗する | 他の重いアプリを閉じてメモリを空ける(ピーク約10GB) |
 | 英訳できない | Ollama が起動しているか、`gpt-oss:20b` を取得済みか確認する |
 
